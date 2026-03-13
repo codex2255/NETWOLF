@@ -1,11 +1,12 @@
 import socket
 import struct
 
-def send_packet(target_ip, target_port, spoofed_ip):
+import socket
+
+def send_packet( sock, target_ip, target_port):
     try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        payload = struct.pack("!4s", bytes(spoofed_ip, 'utf-8'))
+        # Send the string IP as bytes
+        payload = bytes("192.168.20.102", 'utf-8')
         sock.sendto(payload, (target_ip, target_port))
-        sock.close()
     except Exception as e:
         print(f"Error sending packet: {e}")

