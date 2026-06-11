@@ -1,5 +1,6 @@
 import socket
 import random # Needed for random data in packets
+import udp
 
 def send_packet(target_ip, target_port):
     """
@@ -22,3 +23,6 @@ def send_packet(target_ip, target_port):
         # Ensure the socket is closed after sending the packet
         if 's' in locals() and s: # Check if 's' was successfully created
             s.close()
+
+
+
