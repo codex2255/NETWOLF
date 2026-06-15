@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NETWOLF — DoS Module</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../assets/css/dos.css">
+</head>
+<body>
+    <nav id="navbar">
+        <div class="nav-logo">NETWOLF</div>
+        <ul class="nav-links">
+            <li><a href="dashboard.html" class="nav-item">DASHBOARD</a></li>
+            <li><a href="scanner.html" class="nav-item">PORT SCANNER</a></li>
+            <li><a href="dos.html" class="nav-item active">DoS MODULE</a></li>
+            <li><a href="#" class="nav-item">LOGS</a></li>
+        </ul>
+        <div class="nav-status">
+            <span class="status-dot"></span>
+            <span class="status-text">SYSTEM ONLINE</span>
+        </div>
+    </nav>
+
+    <div id="mainLayout">
+        <aside id="sidebar">
+            <a href="dashboard.html" class="sidebar-item">&#9658; DASHBOARD</a>
+            <a href="scanner.html" class="sidebar-item">&#9658; PORT SCANNER</a>
+            <a href="dos.html" class="sidebar-item active">&#9658; DoS MODULE</a>
+            <a href="#" class="sidebar-item">&#9658; SCAN LOGS</a>
+            <a href="#" class="sidebar-item">&#9658; REPORTS</a>
+            <a href="#" class="sidebar-item">&#9658; SETTINGS</a>
+        </aside>
+
+        <main id="mainContent">
+            <h1 class="page-title">// DoS MODULE</h1>
+
+            <div id="warningBanner">
+                &#9888; FOR AUTHORISED STRESS TESTING ONLY. DO NOT USE ON SYSTEMS WITHOUT EXPLICIT PERMISSION.
+            </div>
+
+            <div id="inputCard">
+                <div id="inputRowTop">
+                    <div class="input-field">
+                        <label for="targetIP">TARGET IP ADDRESS</label>
+                        <input type="text" id="targetIP" placeholder="e.g. 192.168.1.1" />
+                    </div>
+                    <div class="input-field">
+                        <label for="targetPort">TARGET PORT</label>
+                        <input type="number" id="targetPort" placeholder="e.g. 80" min="1" max="65535" />
+                    </div>
+                    <div class="input-field">
+                        <label for="packetCount">PACKET COUNT</label>
+                        <input type="number" id="packetCount" placeholder="e.g. 1000" min="1" />
+                    </div>
+                </div>
+                <div id="inputRowBottom">
+                    <div class="input-field">
+                        <label for="attackType">ATTACK TYPE</label>
+                        <select id="attackType">
+                            <option value="UDP_FLOOD">UDP FLOOD</option>
+                            <option value="TCP_SYN">TCP SYN FLOOD</option>
+                            <option value="HTTP_FLOOD">HTTP FLOOD</option>
+                        </select>
+                    </div>
+                    <div class="input-field">
+                        <label for="threadCount">THREAD COUNT (MAX 4)</label>
+                        <input type="number" id="threadCount" placeholder="e.g. 4" min="1" max="4" value="4" />
+                    </div>
+                </div>
+                <p id="errorMsg" class="error-msg hidden">&#9888; Please enter a valid IP address and port number.</p>
+                <div id="btnRow">
+                    <button id="startBtn" onclick="startAttack()">&#9658; START ATTACK</button>
+                    <button id="stopBtn" onclick="stopAttack()" disabled>&#9646;&#9646; STOP</button>
+                </div>
+            </div>
+
+            <h2 class="section-title">// LIVE STATS</h2>
+            <div id="statsGrid">
+                <div class="stat-card">
+                    <p class="stat-label">PACKETS SENT</p>
+                    <p class="stat-value" id="statPackets">0</p>
+                </div>
+                <div class="stat-card">
+                    <p class="stat-label">PACKETS/SEC</p>
+                    <p class="stat-value" id="statPPS">0</p>
+                </div>
+                <div class="stat-card">
+                    <p class="stat-label">ELAPSED TIME</p>
+                    <p class="stat-value" id="statTime">0s</p>
+                </div>
+                <div class="stat-card">
+                    <p class="stat-label">STATUS</p>
+                    <p class="stat-value stat-idle" id="statStatus">IDLE</p>
+                </div>
+            </div>
+
+            <div id="statusBar">
+                <span class="status-dot-dos idle"></span>
+                <span id="statusText">AWAITING TARGET INPUT...</span>
+            </div>
+
+            <h2 class="section-title">// ATTACK LOG</h2>
+            <div id="attackLog">
+                <p class="log-empty">No attack initiated. Configure target and click START ATTACK.</p>
+            </div>
+        </main>
+    </div>
+
+    <script src="../assets/js/netwolf.js"></script>
+    <script src="../assets/js/dos.js"></script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NETWOLF</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="assets/css/netwolf.css">
+</head>
+<body>
+
+    <!-- Particle Network Background -->
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- Intro Splash Screen -->
+    <div id="introScreen" class="intro-screen">
+
+        <svg id="hatSvg" viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg" class="hat-svg">
+            <!-- Brim top curve -->
+            <path class="hat-path" d="M 20 110 Q 100 125 180 110" />
+            <!-- Brim bottom curve -->
+            <path class="hat-path" d="M 20 110 Q 100 130 180 110" />
+            <!-- Crown left and right sides -->
+            <path class="hat-path" d="M 55 110 Q 50 70 70 45 Q 100 25 130 45 Q 150 70 145 110" />
+            <!-- Crown top curve -->
+            <path class="hat-path" d="M 70 45 Q 100 30 130 45" />
+            <!-- Hat band — dark stripe -->
+            <path class="hat-path band-path" d="M 58 95 Q 100 105 142 95" />
+            <!-- Brim left extension -->
+            <path class="hat-path" d="M 55 110 Q 35 115 20 110" />
+            <!-- Brim right extension -->
+            <path class="hat-path" d="M 145 110 Q 165 115 180 110" />
+        </svg>
+
+        <div id="netwolfText" class="intro-text">NETWOLF</div>
+        <div id="subText" class="intro-subtext">INITIALIZING SYSTEM...</div>
+
+    </div>
+
+    <script src="assets/js/netwolf.js"></script>
+</body>
+</html>

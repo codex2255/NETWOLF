@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NETWOLF — Port Scanner</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- NETWOLF Scanner Styles -->
+    <link rel="stylesheet" href="../assets/css/scanner.css">
+</head>
+<body>
+
+    <!-- ================================================
+         TOP NAVIGATION BAR
+    ================================================ -->
+    <nav id="navbar">
+        <div class="nav-logo">NETWOLF</div>
+
+        <ul class="nav-links">
+            <li><a href="dashboard.html" class="nav-item">DASHBOARD</a></li>
+            <li><a href="scanner.html" class="nav-item active">PORT SCANNER</a></li>
+            <li><a href="dos.html" class="nav-item">DoS MODULE</a></li>
+            <li><a href="#" class="nav-item">LOGS</a></li>
+        </ul>
+
+        <div class="nav-status">
+            <span class="status-dot"></span>
+            <span class="status-text">SYSTEM ONLINE</span>
+        </div>
+    </nav>
+
+    <!-- ================================================
+         MAIN LAYOUT
+    ================================================ -->
+    <div id="mainLayout">
+
+        <!-- SIDEBAR -->
+        <aside id="sidebar">
+            <a href="dashboard.html" class="sidebar-item">&#9658; DASHBOARD</a>
+            <a href="scanner.html" class="sidebar-item active">&#9658; PORT SCANNER</a>
+            <a href="dos.html" class="sidebar-item">&#9658; DoS MODULE</a>
+            <a href="#" class="sidebar-item">&#9658; SCAN LOGS</a>
+            <a href="#" class="sidebar-item">&#9658; REPORTS</a>
+            <a href="#" class="sidebar-item">&#9658; SETTINGS</a>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main id="mainContent">
+
+            <h1 class="page-title">// PORT SCANNER</h1>
+
+            <!-- ============================================
+                 INPUT CARD
+            ============================================ -->
+            <div id="inputCard">
+                <div id="inputRow">
+
+                    <div class="input-field">
+                        <label for="targetIP">TARGET IP / HOSTNAME</label>
+                        <input
+                            type="text"
+                            id="targetIP"
+                            placeholder="e.g. 192.168.1.1"
+                        />
+                    </div>
+
+                    <div class="input-field">
+                        <label for="portStart">PORT RANGE START</label>
+                        <input
+                            type="number"
+                            id="portStart"
+                            placeholder="e.g. 1"
+                            min="1"
+                            max="65535"
+                        />
+                    </div>
+
+                    <div class="input-field">
+                        <label for="portEnd">PORT RANGE END</label>
+                        <input
+                            type="number"
+                            id="portEnd"
+                            placeholder="e.g. 1024"
+                            min="1"
+                            max="65535"
+                        />
+                    </div>
+
+                    <button id="scanBtn" onclick="startScan()">&#9658; SCAN</button>
+
+                </div>
+
+                <!-- Validation error -->
+                <p id="errorMsg" class="error-msg hidden">&#9888; Please enter a valid IP and port range.</p>
+            </div>
+
+            <!-- ============================================
+                 SCAN STATUS BAR
+            ============================================ -->
+            <div id="statusBar" class="hidden">
+                <span class="status-dot-scan"></span>
+                <span id="statusText">SCANNING...</span>
+            </div>
+
+            <!-- ============================================
+                 RESULTS TABLE
+            ============================================ -->
+            <h2 class="section-title">// SCAN RESULTS</h2>
+            <div id="resultsContainer">
+                <div class="results-header">
+                    <span>PORT</span>
+                    <span>SERVICE</span>
+                    <span>STATUS</span>
+                    <span>RESPONSE TIME</span>
+                </div>
+                <div id="resultsBody">
+                    <p class="no-results">No scan results yet. Enter a target and click SCAN.</p>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../assets/js/netwolf.js"></script>
+    <script src="../assets/js/scanner.js"></script>
+
+</body>
+</html>
