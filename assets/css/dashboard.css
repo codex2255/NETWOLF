@@ -1,0 +1,251 @@
+/* ================================================
+   NETWOLF — Dashboard Stylesheet
+   Project: NETWOLF Network Security Tool
+   Course: CS205 - Integrated Studio III
+   Team: Josh (Backend) & Vishesh (Frontend)
+   ================================================ */
+
+
+/* --- Base & Reset --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #0a0a0f;
+    color: #cccccc;
+    font-family: 'Courier New', monospace;
+    min-height: 100vh;
+}
+
+
+/* ================================================
+   NAVIGATION BAR
+================================================ */
+
+#navbar {
+    background-color: #111118;
+    border-bottom: 1px solid rgba(255, 0, 0, 0.2);
+    height: 52px;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+/* NETWOLF logo text */
+.nav-logo {
+    color: #ff2222;
+    font-size: 18px;
+    font-weight: bold;
+    letter-spacing: 6px;
+}
+
+/* Nav links list */
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 28px;
+}
+
+/* Individual nav link */
+.nav-item {
+    color: #555;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.nav-item:hover {
+    color: #ff4444;
+}
+
+/* Active nav link */
+.nav-item.active {
+    color: #ff2222;
+}
+
+/* System status indicator (top right) */
+.nav-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Green pulsing dot */
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #22ff66;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+.status-text {
+    color: #22ff66;
+    font-size: 11px;
+    letter-spacing: 1px;
+}
+
+
+/* ================================================
+   MAIN LAYOUT — Sidebar + Content
+================================================ */
+
+#mainLayout {
+    display: flex;
+    height: calc(100vh - 52px);
+}
+
+
+/* ================================================
+   SIDEBAR
+================================================ */
+
+#sidebar {
+    width: 190px;
+    background-color: #0d0d14;
+    border-right: 1px solid rgba(255, 0, 0, 0.1);
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* Sidebar navigation item */
+.sidebar-item {
+    padding: 10px 20px;
+    font-size: 11px;
+    color: #555;
+    letter-spacing: 1px;
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.sidebar-item:hover {
+    color: #ff4444;
+    background-color: rgba(255, 0, 0, 0.05);
+}
+
+/* Active sidebar item — red left border highlight */
+.sidebar-item.active {
+    color: #ff2222;
+    border-left: 2px solid #ff2222;
+    background-color: rgba(255, 0, 0, 0.07);
+}
+
+
+/* ================================================
+   MAIN CONTENT AREA
+================================================ */
+
+#mainContent {
+    flex: 1;
+    padding: 28px;
+    overflow-y: auto;
+}
+
+/* Page section title */
+.page-title {
+    color: #ff2222;
+    font-size: 13px;
+    letter-spacing: 4px;
+    margin-bottom: 24px;
+}
+
+
+/* ================================================
+   STATS CARDS GRID
+================================================ */
+
+#statsGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+/* Individual stat card */
+.stat-card {
+    background-color: #111118;
+    border: 1px solid rgba(255, 0, 0, 0.2);
+    border-radius: 6px;
+    padding: 18px;
+    transition: border-color 0.2s ease;
+}
+
+.stat-card:hover {
+    border-color: rgba(255, 0, 0, 0.5);
+}
+
+/* Card label — small uppercase heading */
+.stat-label {
+    font-size: 10px;
+    color: #555;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+}
+
+/* Card main value — large number */
+.stat-value {
+    font-size: 32px;
+    color: #ff2222;
+    font-weight: bold;
+    margin-bottom: 6px;
+}
+
+/* Danger value — used for vulnerabilities count */
+.stat-danger {
+    color: #ff4400;
+}
+
+/* Card subtitle */
+.stat-sub {
+    font-size: 10px;
+    color: #444;
+}
+
+
+/* ================================================
+   ACTIVITY LOG
+================================================ */
+
+/* Section heading */
+.section-title {
+    color: #ff2222;
+    font-size: 11px;
+    letter-spacing: 3px;
+    margin-bottom: 14px;
+}
+
+/* Log container — terminal-style dark box */
+#activityLog {
+    background-color: #080810;
+    border: 1px solid rgba(255, 0, 0, 0.15);
+    border-radius: 6px;
+    padding: 16px 20px;
+    font-size: 12px;
+    line-height: 2;
+}
+
+/* Individual log entry */
+.log-line {
+    color: #444;
+}
+
+/* Log status tags */
+.log-ok   { color: #22ff66; }   /* Success */
+.log-warn { color: #ffaa22; }   /* Warning */
+.log-err  { color: #ff3333; }   /* Error / Alert */
