@@ -6,7 +6,7 @@ import os
 from datetime import datetime
 from utils.attack import udp_flood, tcp_flood, icmp_flood, http_flood, smurf_attack
 from utils.scanner import port_scan, service_detection, os_fingerprint
-from utils.discovery import network_discovery, ping_sweep, arp_scan
+from utils.discovery import network_discovery, ping_sweep, arp_scan, get_router_ip, discover_gateway_and_scan, smart_discovery, get_all_network_interfaces
 
 class NetWolf:
     def __init__(self):
@@ -96,54 +96,123 @@ class NetWolf:
 
         print("4. ARP scan only (more accurate)")
         
-        choice = input("\nSelect method (1-4): ")
+        print("5. FIND ROUTER & SCAN ENTIRE NETWORK")
+        
+        print("6. Scan all network interfaces")
+        
+        print("7. Smart discovery (auto router detection)")
+        
+        choice = input("\nSelect method (1-7): ")
         
         if choice == '1':
             network = self.get_network_range()
 
             print(f"\n[*] Scanning network: {network}")
             results = network_discovery(network)
+            
         elif choice == '2':
 
             network = input("Enter network range (e.g., 192.168.1.0/24): ")
 
             results = network_discovery(network)
+            
         elif choice == '3':
 
             network = input("Enter network range (e.g., 192.168.1.0/24): ")
             results = ping_sweep(network)
+            
         elif choice == '4':
 
             network = input("Enter network range (e.g., 192.168.1.0/24): ")
             results = arp_scan(network)
+            
+        elif choice == '5':
+            
+            print("\n[*] Locating router and scanning entire network...")
+            
+            router_ip = get_router_ip()
+            
+            if router_ip:
+                
+                print(f"[*] Found router IP: {router_ip}")
+                
+                results, gateway_info = discover_gateway_and_scan()
+                
+                if results:
+                    
+                    for host in results:
+                        
+                        if host.get('is_gateway'):
+                            
+                            print(f"\n[*] GATEWAY FOUND: {host['ip']}")
+            else:
+                
+                print("[-] Could not find router, falling back to auto-detect")
+                
+                network = self.get_network_range()
+                
+                results = network_discovery(network)
+                
+        elif choice == '6':
+            
+            print("\n[*] Scanning all network interfaces...")
+            
+            all_devices = []
+            
+            interfaces = get_all_network_interfaces()
+            
+            for iface in interfaces:
+                
+                print(f"[*] Scanning: {iface['network']}")
+                
+                devices = ping_sweep(iface['network'])
+                
+                all_devices.extend(devices)
+            
+            results = all_devices
+            
+        elif choice == '7':
+            
+            print("\n[*] Running smart discovery...")
+            
+            results = smart_discovery()
+            
         else:
             return
         
         self.discovered_hosts = results
 
         print("\n[ DISCOVERED DEVICES ]")
-        print("-" * 60)
+        print("-" * 70)
 
-        print(f"{'IP Address':<20} {'Status':<10} {'Hostname':<25}")
-        print("-" * 60)
+        print(f"{'IP Address':<20} {'Status':<10} {'Type':<15} {'Hostname':<25}")
+        print("-" * 70)
 
         
         for host in results:
 
 
             hostname_str = host.get('hostname', 'Unknown')[:25]
+            
+            device_type = "Router" if host.get('is_gateway') else "Device"
 
-            print(f"{host['ip']:<20} {host['status']:<10} {hostname_str:<25}")
+            print(f"{host['ip']:<20} {host['status']:<10} {device_type:<15} {hostname_str:<25}")
         
-        print("-" * 60)
+        print("-" * 70)
 
-        print(f"\n[*] Total active hosts: {len([h for h in results if h['status'] == 'active'])}")
+        router_count = len([h for h in results if h.get('is_gateway')])
+        
+        active_count = len([h for h in results if h['status'] == 'active'])
+
+        print(f"\n[*] Total active hosts: {active_count}")
+        
+        print(f"[*] Routers/Gateways found: {router_count}")
         
         save = input("\nSave results? (y/n): ")
         
         if save.lower() == 'y':
 
-            self.save_results(results, f"network_scan_{network.replace('/', '_')}")
+            self.save_results(results, f"network_scan_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
     
     def get_network_range(self):
         try:
@@ -299,17 +368,19 @@ class NetWolf:
         else:
             print("\n[ DISCOVERED HOSTS ]")
 
-            print("-" * 60)
+            print("-" * 70)
 
-            print(f"{'IP Address':<20} {'Status':<10} {'Hostname':<25}")
+            print(f"{'IP Address':<20} {'Status':<10} {'Type':<15} {'Hostname':<25}")
 
-            print("-" * 60)
+            print("-" * 70)
             for host in self.discovered_hosts:
 
                 hostname_str = host.get('hostname', 'Unknown')[:25]
+                
+                device_type = "Router" if host.get('is_gateway') else "Device"
 
-                print(f"{host['ip']:<20} {host['status']:<10} {hostname_str:<25}")
-            print("-" * 60)
+                print(f"{host['ip']:<20} {host['status']:<10} {device_type:<15} {hostname_str:<25}")
+            print("-" * 70)
     
     def start_gui(self):
         print("[*] Starting web interface on http://127.0.0.1:5000")
