@@ -311,32 +311,54 @@ class NetWolf:
             
             return self.normalize_network_range(raw_input)
     
-    def port_scanner_menu(self):
+def port_scanner_menu(self):
 
-        target = input("Target IP: ")
+    target = input("Target IP: ")
 
-        start_port = int(input("Start port (1-65535): "))
+    start_port = int(input("Start port (1-65535): "))
 
-        end_port = int(input("End port: "))
-        
-        print(f"\n[*] Scanning {target} ports {start_port}-{end_port}")
+    end_port = int(input("End port: "))
+    
+    scan_udp = input("Scan UDP ports as well? (y/n): ").lower() == 'y'
+    
+    print(f"\n[*] Scanning {target} ports {start_port}-{end_port}")
+    
+    if scan_udp:
+        print("[*] Scanning TCP and common UDP ports")
+    
+    results = port_scan(target, start_port, end_port, scan_udp)
+    
+    self.scan_results = results
 
-        results = port_scan(target, start_port, end_port)
-        
-        self.scan_results = results
+    print("\n[ OPEN PORTS ]")
+    print("-" * 50)
+    print(f"{'PORT':<10} {'PROTOCOL':<10} {'SERVICE':<15}")
+    print("-" * 50)
 
-        print("\n[ OPEN PORTS ]")
+    tcp_open = 0
+    udp_open = 0
+    
+    for r in results:
+        if r['status'] == 'open':
+            print(f"{r['port']:<10} {r['protocol']:<10} {r.get('service', 'unknown'):<15}")
+            if r['protocol'] == 'TCP':
+                tcp_open += 1
+            else:
+                udp_open += 1
+        elif r['status'] == 'open|filtered':
+            print(f"{r['port']:<10} {r['protocol']:<10} UDP (open|filtered)")
+            udp_open += 1
+    
+    print("-" * 50)
+    print(f"\n[*] Total open ports: {len([r for r in results if r['status'] in ['open', 'open|filtered']])}")
+    print(f"[*] TCP open: {tcp_open}")
+    if scan_udp:
+        print(f"[*] UDP open: {udp_open}")
+    
+    save = input("\nSave results? (y/n): ")
 
-        for r in results:
-
-            if r['status'] == 'open':
-
-                print(f"  Port {r['port']}: OPEN")
-        
-        save = input("\nSave results? (y/n): ")
-
-        if save.lower() == 'y':
-            self.save_results(results, f"scan_{target}")
+    if save.lower() == 'y':
+        self.save_results(results, f"scan_{target}")
     
     def service_detection_menu(self):
 
