@@ -4,7 +4,7 @@ import time
 import json
 import os
 from datetime import datetime
-from utils.attack import udp_flood, tcp_flood, icmp_flood, http_flood, smurf_attack
+from utils.attack import udp_flood, tcp_flood, icmp_flood, http_flood, smurf_attack, network_wide_udp_flood, broadcast_udp_flood, dns_amplification_attack
 from utils.scanner import port_scan, service_detection, os_fingerprint
 from utils.discovery import network_discovery, ping_sweep, arp_scan, get_router_ip, discover_gateway_and_scan, smart_discovery, get_all_network_interfaces
 
@@ -129,15 +129,10 @@ class NetWolf:
 
         print("1. Auto-detect network and scan")
         print("2. Manual network range (e.g., 192.168.1.0/24)")
-
         print("3. Ping sweep only")
-
         print("4. ARP scan only (more accurate)")
-        
         print("5. FIND ROUTER & SCAN ENTIRE NETWORK")
-        
         print("6. Scan all network interfaces")
-        
         print("7. Smart discovery (auto router detection)")
         
         choice = input("\nSelect method (1-7): ")
@@ -148,7 +143,7 @@ class NetWolf:
             network = self.get_network_range()
 
             print(f"\n[*] Scanning network: {network}")
-            results = network_discovery(network)
+            results = network_discovery(network, enhanced=True)
             
         elif choice == '2':
 
@@ -158,7 +153,7 @@ class NetWolf:
             
             print(f"[*] Normalized to: {network}")
 
-            results = network_discovery(network)
+            results = network_discovery(network, enhanced=True)
             
         elif choice == '3':
 
@@ -209,7 +204,7 @@ class NetWolf:
                 
                 network = self.get_network_range()
                 
-                results = network_discovery(network)
+                results = network_discovery(network, enhanced=True)
                 
         elif choice == '6':
             
@@ -253,31 +248,58 @@ class NetWolf:
             
             return
 
-        print("\n[ DISCOVERED DEVICES ]")
-        print("-" * 70)
-
-        print(f"{'IP Address':<20} {'Status':<10} {'Type':<15} {'Hostname':<25}")
-        print("-" * 70)
+        print("\n[ DISCOVERED DEVICES - DETAILED ]")
+        print("=" * 100)
+        
+        print(f"{'IP Address':<18} {'Device Type':<18} {'OS':<14} {'MAC Address':<20} {'Manufacturer':<20}")
+        print("-" * 100)
 
         
         for host in results:
-
-
-            hostname_str = host.get('hostname', 'Unknown')[:25] if host.get('hostname') else 'Unknown'
             
-            device_type = "Router" if host.get('is_gateway') else "Device"
+            ip = host.get('ip', 'Unknown')
+            
+            device_type = host.get('device_type', 'Device')[:18]
+            
+            os_type = host.get('os', 'Unknown')[:14]
+            
+            mac = host.get('mac', 'N/A')[:20] if host.get('mac') else 'N/A'
+            
+            manufacturer = host.get('manufacturer', 'Unknown')[:20]
 
-            print(f"{host['ip']:<20} {host['status']:<10} {device_type:<15} {hostname_str:<25}")
+            print(f"{ip:<18} {device_type:<18} {os_type:<14} {mac:<20} {manufacturer:<20}")
         
-        print("-" * 70)
+        print("=" * 100)
 
-        router_count = len([h for h in results if h.get('is_gateway')])
+        router_count = len([h for h in results if 'router' in h.get('device_type', '').lower() or h.get('is_gateway')])
         
-        active_count = len([h for h in results if h['status'] == 'active'])
+        apple_count = len([h for h in results if 'apple' in h.get('device_type', '').lower() or 'apple' in h.get('manufacturer', '').lower()])
+        
+        windows_count = len([h for h in results if 'windows' in h.get('os', '') or 'windows' in h.get('device_type', '').lower()])
+        
+        linux_count = len([h for h in results if 'linux' in h.get('os', '').lower()])
 
-        print(f"\n[*] Total active hosts: {active_count}")
+        print(f"\n[*] Total active hosts: {len(results)}")
+        print(f"[*] Routers/Gateways: {router_count}")
+        print(f"[*] Apple devices: {apple_count}")
+        print(f"[*] Windows devices: {windows_count}")
+        print(f"[*] Linux/Unix devices: {linux_count}")
         
-        print(f"[*] Routers/Gateways found: {router_count}")
+        show_details = input("\nShow detailed view with hostnames? (y/n): ")
+        
+        if show_details.lower() == 'y':
+            
+            print("\n[ DETAILED DEVICE INFO ]")
+            print("-" * 80)
+            
+            for host in results:
+                
+                print(f"\nIP: {host.get('ip', 'Unknown')}")
+                print(f"  Device Type: {host.get('device_type', 'Unknown')}")
+                print(f"  OS: {host.get('os', 'Unknown')}")
+                print(f"  MAC: {host.get('mac', 'N/A')}")
+                print(f"  Manufacturer: {host.get('manufacturer', 'Unknown')}")
+                print(f"  Hostname: {host.get('hostname', 'Unknown')}")
         
         save = input("\nSave results? (y/n): ")
         
@@ -311,54 +333,54 @@ class NetWolf:
             
             return self.normalize_network_range(raw_input)
     
-def port_scanner_menu(self):
+    def port_scanner_menu(self):
 
-    target = input("Target IP: ")
+        target = input("Target IP: ")
 
-    start_port = int(input("Start port (1-65535): "))
+        start_port = int(input("Start port (1-65535): "))
 
-    end_port = int(input("End port: "))
-    
-    scan_udp = input("Scan UDP ports as well? (y/n): ").lower() == 'y'
-    
-    print(f"\n[*] Scanning {target} ports {start_port}-{end_port}")
-    
-    if scan_udp:
-        print("[*] Scanning TCP and common UDP ports")
-    
-    results = port_scan(target, start_port, end_port, scan_udp)
-    
-    self.scan_results = results
+        end_port = int(input("End port: "))
+        
+        scan_udp = input("Scan UDP ports as well? (y/n): ").lower() == 'y'
+        
+        print(f"\n[*] Scanning {target} ports {start_port}-{end_port}")
+        
+        if scan_udp:
+            print("[*] Scanning TCP and common UDP ports")
+        
+        results = port_scan(target, start_port, end_port, scan_udp)
+        
+        self.scan_results = results
 
-    print("\n[ OPEN PORTS ]")
-    print("-" * 50)
-    print(f"{'PORT':<10} {'PROTOCOL':<10} {'SERVICE':<15}")
-    print("-" * 50)
+        print("\n[ OPEN PORTS ]")
+        print("-" * 50)
+        print(f"{'PORT':<10} {'PROTOCOL':<10} {'SERVICE':<15}")
+        print("-" * 50)
 
-    tcp_open = 0
-    udp_open = 0
-    
-    for r in results:
-        if r['status'] == 'open':
-            print(f"{r['port']:<10} {r['protocol']:<10} {r.get('service', 'unknown'):<15}")
-            if r['protocol'] == 'TCP':
-                tcp_open += 1
-            else:
+        tcp_open = 0
+        udp_open = 0
+        
+        for r in results:
+            if r['status'] == 'open':
+                print(f"{r['port']:<10} {r['protocol']:<10} {r.get('service', 'unknown'):<15}")
+                if r['protocol'] == 'TCP':
+                    tcp_open += 1
+                else:
+                    udp_open += 1
+            elif r['status'] == 'open|filtered':
+                print(f"{r['port']:<10} {r['protocol']:<10} UDP (open|filtered)")
                 udp_open += 1
-        elif r['status'] == 'open|filtered':
-            print(f"{r['port']:<10} {r['protocol']:<10} UDP (open|filtered)")
-            udp_open += 1
-    
-    print("-" * 50)
-    print(f"\n[*] Total open ports: {len([r for r in results if r['status'] in ['open', 'open|filtered']])}")
-    print(f"[*] TCP open: {tcp_open}")
-    if scan_udp:
-        print(f"[*] UDP open: {udp_open}")
-    
-    save = input("\nSave results? (y/n): ")
+        
+        print("-" * 50)
+        print(f"\n[*] Total open ports: {len([r for r in results if r['status'] in ['open', 'open|filtered']])}")
+        print(f"[*] TCP open: {tcp_open}")
+        if scan_udp:
+            print(f"[*] UDP open: {udp_open}")
+        
+        save = input("\nSave results? (y/n): ")
 
-    if save.lower() == 'y':
-        self.save_results(results, f"scan_{target}")
+        if save.lower() == 'y':
+            self.save_results(results, f"scan_{target}")
     
     def service_detection_menu(self):
 
@@ -398,62 +420,93 @@ def port_scanner_menu(self):
     def attack_menu(self):
         print("\n[ DOS ATTACK SUITE ]")
 
-        print("1. UDP Flood")
-
-        print("2. TCP Flood (SYN)")
-        print("3. ICMP Flood (Ping)")
-
-        print("4. HTTP Flood")
-        print("5. Smurf Attack")
+        print("1. UDP Flood (Single Target)")
+        print("2. TCP Flood (Single Target)")
+        print("3. ICMP Flood (Single Target)")
+        print("4. HTTP Flood (Web Server)")
+        print("5. Smurf Attack (Amplification)")
+        print("\n--- NETWORK-WIDE ATTACKS (Affects ALL devices) ---")
+        print("6. NETWORK-WIDE UDP Flood (Hits every IP)")
+        print("7. BROADCAST FLOOD (One packet = ALL devices)")
+        print("8. DNS Amplification (Reflected attack)")
         
-        attack_type = input("\nSelect attack type (1-5): ")
+        attack_type = input("\nSelect attack type (1-8): ")
 
-        target_ip = input("Target IP: ")
-        target_port = input("Target port (if needed): ")
-
-        target_port = int(target_port) if target_port else None
-        duration = int(input("Attack duration (seconds): "))
-
-        threads = int(input("Number of threads (1-20): "))
-        
-        print(f"\n[!] WARNING: Starting {attack_type} attack on {target_ip}")
-
-        print(f"[!] Duration: {duration} seconds | Threads: {threads}")
-        confirm = input("[!] Type 'ETHICAL USE ONLY' to confirm: ")
-
-
-        
-        if confirm == "ETHICAL USE ONLY":
-
-            self.attack_log.append({
-
-                'timestamp': datetime.now().isoformat(),
-                'target': target_ip,
-                'type': attack_type,
-
-                'duration': duration,
-
-                'threads': threads
-            })
+        if attack_type in ['6', '7']:
+            target_network = input("Target network (e.g., 192.168.20.0/24): ")
+            target_port = int(input("Target port: "))
+            duration = int(input("Attack duration (seconds): "))
+            threads = int(input("Number of threads (20-100): "))
             
-            if attack_type == '1':
-
-                udp_flood(target_ip, target_port, duration, threads)
-            elif attack_type == '2':
-
-                tcp_flood(target_ip, target_port, duration, threads)
-            elif attack_type == '3':
-
-                icmp_flood(target_ip, duration, threads)
-            elif attack_type == '4':
-
-                http_flood(target_ip, duration, threads)
-            elif attack_type == '5':
-                smurf_attack(target_ip, duration, threads)
+            print(f"\n[!] WARNING: NETWORK-WIDE attack on {target_network}")
+            print(f"[!] This will affect EVERY device on the network!")
+            confirm = input("[!] Type 'ETHICAL USE ONLY' to confirm: ")
+            
+            if confirm == "ETHICAL USE ONLY":
+                if attack_type == '6':
+                    network_wide_udp_flood(target_network, target_port, duration, threads)
+                elif attack_type == '7':
+                    broadcast_udp_flood(target_network, target_port, duration, threads)
+            else:
+                print("[-] Attack cancelled")
+                return
                 
-            print(f"[+] Attack completed - {duration} seconds of {attack_type} traffic sent to {target_ip}")
+        elif attack_type == '8':
+            target_ip = input("Target IP (victim to amplify to): ")
+            duration = int(input("Attack duration (seconds): "))
+            threads = int(input("Number of threads (20-100): "))
+            
+            confirm = input("[!] Type 'ETHICAL USE ONLY' to confirm: ")
+            if confirm == "ETHICAL USE ONLY":
+                dns_amplification_attack(target_ip, duration, threads)
+            else:
+                print("[-] Attack cancelled")
+                return
+                
         else:
-            print("[-] Attack cancelled - confirmation failed")
+            target_ip = input("Target IP: ")
+            target_port = input("Target port (if needed): ")
+            target_port = int(target_port) if target_port else None
+            duration = int(input("Attack duration (seconds): "))
+            threads = int(input("Number of threads (20-100): "))
+            
+            attack_names = {
+                '1': 'UDP Flood',
+                '2': 'TCP Flood',
+                '3': 'ICMP Flood',
+                '4': 'HTTP Flood',
+                '5': 'Smurf Attack'
+            }
+            
+            print(f"\n[!] WARNING: Starting {attack_names.get(attack_type, 'Attack')} on {target_ip}")
+            print(f"[!] Duration: {duration} seconds | Threads: {threads}")
+            confirm = input("[!] Type 'ETHICAL USE ONLY' to confirm: ")
+            
+            if confirm == "ETHICAL USE ONLY":
+                
+                self.attack_log.append({
+                    'timestamp': datetime.now().isoformat(),
+                    'target': target_ip,
+                    'type': attack_names.get(attack_type, attack_type),
+                    'duration': duration,
+                    'threads': threads
+                })
+                
+                if attack_type == '1':
+                    udp_flood(target_ip, target_port, duration, threads)
+                elif attack_type == '2':
+                    tcp_flood(target_ip, target_port, duration, threads)
+                elif attack_type == '3':
+                    icmp_flood(target_ip, duration, threads)
+                elif attack_type == '4':
+                    http_flood(target_ip, duration, threads)
+                elif attack_type == '5':
+                    smurf_attack(target_ip, duration, threads)
+            else:
+                print("[-] Attack cancelled")
+                return
+        
+        print(f"[+] Attack completed")
     
     def show_logs(self):
         if not self.attack_log:
@@ -471,23 +524,27 @@ def port_scanner_menu(self):
             print("[*] No hosts discovered yet. Run Network Discovery first.")
 
         else:
-            print("\n[ DISCOVERED HOSTS ]")
-
-            print("-" * 70)
-
-            print(f"{'IP Address':<20} {'Status':<10} {'Type':<15} {'Hostname':<25}")
-
-            print("-" * 70)
+            print("\n[ DISCOVERED HOSTS - DETAILED ]")
+            print("=" * 100)
+            
+            print(f"{'IP Address':<18} {'Device Type':<18} {'OS':<14} {'MAC Address':<20} {'Manufacturer':<20}")
+            print("-" * 100)
             
             for host in self.discovered_hosts:
-
-                hostname_str = host.get('hostname', 'Unknown')[:25] if host.get('hostname') else 'Unknown'
                 
-                device_type = "Router" if host.get('is_gateway') else "Device"
+                ip = host.get('ip', 'Unknown')
+                
+                device_type = host.get('device_type', 'Device')[:18]
+                
+                os_type = host.get('os', 'Unknown')[:14]
+                
+                mac = host.get('mac', 'N/A')[:20] if host.get('mac') else 'N/A'
+                
+                manufacturer = host.get('manufacturer', 'Unknown')[:20]
 
-                print(f"{host['ip']:<20} {host['status']:<10} {device_type:<15} {hostname_str:<25}")
+                print(f"{ip:<18} {device_type:<18} {os_type:<14} {mac:<20} {manufacturer:<20}")
             
-            print("-" * 70)
+            print("=" * 100)
     
     def start_gui(self):
         print("[*] Starting web interface on http://127.0.0.1:5000")

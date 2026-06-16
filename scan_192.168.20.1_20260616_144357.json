@@ -1,0 +1,78 @@
+[
+  {
+    "port": 53,
+    "status": "open",
+    "protocol": "TCP",
+    "service": "domain"
+  },
+  {
+    "port": 80,
+    "status": "open",
+    "protocol": "TCP",
+    "service": "http"
+  },
+  {
+    "port": 1234,
+    "status": "open",
+    "protocol": "TCP",
+    "service": "search-agent"
+  },
+  {
+    "port": 2300,
+    "status": "open",
+    "protocol": "TCP",
+    "service": "cvmmon"
+  },
+  {
+    "port": 4031,
+    "status": "open",
+    "protocol": "TCP",
+    "service": "suucp"
+  },
+  {
+    "port": 8099,
+    "status": "open",
+    "protocol": "TCP",
+    "service": "unknown"
+  },
+  {
+    "port": 53,
+    "status": "open|filtered",
+    "protocol": "UDP"
+  },
+  {
+    "port": 67,
+    "status": "open|filtered",
+    "protocol": "UDP"
+  },
+  {
+    "port": 68,
+    "status": "open|filtered",
+    "protocol": "UDP"
+  },
+  {
+    "port": 69,
+    "status": "open|filtered",
+    "protocol": "UDP"
+  },
+  {
+    "port": 123,
+    "status": "open|filtered",
+    "protocol": "UDP"
+  },
+  {
+    "port": 161,
+    "status": "open|filtered",
+    "protocol": "UDP"
+  },
+  {
+    "port": 520,
+    "status": "open|filtered",
+    "protocol": "UDP"
+  },
+  {
+    "port": 1900,
+    "status": "open|filtered",
+    "protocol": "UDP"
+  }
+]
