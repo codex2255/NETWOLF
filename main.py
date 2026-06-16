@@ -38,6 +38,44 @@ class NetWolf:
 
         print(f"[+] Results saved to {filename}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json")
     
+    def normalize_network_range(self, user_input):
+        
+        user_input = user_input.strip()
+        
+        if '/' in user_input:
+            
+            return user_input
+        
+        parts = user_input.split('.')
+        
+        if len(parts) == 4:
+            
+            if parts[3] == '0':
+                
+                return f"{user_input}/24"
+            
+            else:
+                
+                ip_parts = parts[:3]
+                
+                return f"{'.'.join(ip_parts)}.0/24"
+        
+        elif len(parts) == 3:
+            
+            return f"{user_input}.0/24"
+        
+        elif len(parts) == 2:
+            
+            return f"{parts[0]}.{parts[1]}.0.0/16"
+        
+        elif len(parts) == 1:
+            
+            return f"{parts[0]}.0.0.0/8"
+        
+        else:
+            
+            return user_input
+    
     def run_cli(self):
 
         while self.running:
@@ -104,6 +142,8 @@ class NetWolf:
         
         choice = input("\nSelect method (1-7): ")
         
+        results = []
+        
         if choice == '1':
             network = self.get_network_range()
 
@@ -112,18 +152,36 @@ class NetWolf:
             
         elif choice == '2':
 
-            network = input("Enter network range (e.g., 192.168.1.0/24): ")
+            raw_input = input("Enter network range (e.g., 192.168.1.0/24 or 192.168.1.1): ")
+            
+            network = self.normalize_network_range(raw_input)
+            
+            print(f"[*] Normalized to: {network}")
 
             results = network_discovery(network)
             
         elif choice == '3':
 
-            network = input("Enter network range (e.g., 192.168.1.0/24): ")
+            raw_input = input("Enter network range (e.g., 192.168.1.0/24 or 192.168.1.1): ")
+            
+            network = self.normalize_network_range(raw_input)
+            
+            print(f"[*] Normalized to: {network}")
+            
             results = ping_sweep(network)
+            
+            if results is None:
+                
+                results = []
             
         elif choice == '4':
 
-            network = input("Enter network range (e.g., 192.168.1.0/24): ")
+            raw_input = input("Enter network range (e.g., 192.168.1.0/24 or 192.168.1.1): ")
+            
+            network = self.normalize_network_range(raw_input)
+            
+            print(f"[*] Normalized to: {network}")
+            
             results = arp_scan(network)
             
         elif choice == '5':
@@ -132,7 +190,7 @@ class NetWolf:
             
             router_ip = get_router_ip()
             
-            if router_ip:
+            if router_ip and router_ip != '127.0.0.1':
                 
                 print(f"[*] Found router IP: {router_ip}")
                 
@@ -167,7 +225,9 @@ class NetWolf:
                 
                 devices = ping_sweep(iface['network'])
                 
-                all_devices.extend(devices)
+                if devices:
+                    
+                    all_devices.extend(devices)
             
             results = all_devices
             
@@ -178,9 +238,20 @@ class NetWolf:
             results = smart_discovery()
             
         else:
+            
             return
         
+        if results is None:
+            
+            results = []
+        
         self.discovered_hosts = results
+
+        if not results:
+            
+            print("\n[-] No devices found or invalid network range")
+            
+            return
 
         print("\n[ DISCOVERED DEVICES ]")
         print("-" * 70)
@@ -192,7 +263,7 @@ class NetWolf:
         for host in results:
 
 
-            hostname_str = host.get('hostname', 'Unknown')[:25]
+            hostname_str = host.get('hostname', 'Unknown')[:25] if host.get('hostname') else 'Unknown'
             
             device_type = "Router" if host.get('is_gateway') else "Device"
 
@@ -221,6 +292,14 @@ class NetWolf:
             local_ip = socket.gethostbyname(hostname)
             ip_parts = local_ip.split('.')
 
+            if local_ip == '127.0.0.1':
+                
+                print("[!] You are on localhost - try using manual network range")
+                
+                raw_input = input("Enter network range: ")
+                
+                return self.normalize_network_range(raw_input)
+            
             network = f"{ip_parts[0]}.{ip_parts[1]}.{ip_parts[2]}.0/24"
 
             print(f"[*] Detected local IP: {local_ip}")
@@ -228,7 +307,9 @@ class NetWolf:
             print(f"[*] Auto-detected network: {network}")
             return network
         except:
-            return input("Could not auto-detect. Enter network range: ")
+            raw_input = input("Could not auto-detect. Enter network range: ")
+            
+            return self.normalize_network_range(raw_input)
     
     def port_scanner_menu(self):
 
@@ -347,6 +428,8 @@ class NetWolf:
                 http_flood(target_ip, duration, threads)
             elif attack_type == '5':
                 smurf_attack(target_ip, duration, threads)
+                
+            print(f"[+] Attack completed - {duration} seconds of {attack_type} traffic sent to {target_ip}")
         else:
             print("[-] Attack cancelled - confirmation failed")
     
@@ -373,13 +456,15 @@ class NetWolf:
             print(f"{'IP Address':<20} {'Status':<10} {'Type':<15} {'Hostname':<25}")
 
             print("-" * 70)
+            
             for host in self.discovered_hosts:
 
-                hostname_str = host.get('hostname', 'Unknown')[:25]
+                hostname_str = host.get('hostname', 'Unknown')[:25] if host.get('hostname') else 'Unknown'
                 
                 device_type = "Router" if host.get('is_gateway') else "Device"
 
                 print(f"{host['ip']:<20} {host['status']:<10} {device_type:<15} {hostname_str:<25}")
+            
             print("-" * 70)
     
     def start_gui(self):

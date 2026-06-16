@@ -225,6 +225,10 @@ def discover_gateway_and_scan():
     
     results = ping_sweep(network)
     
+    if results is None:
+        
+        results = []
+    
     gateway_info = {
         'router_ip': router_ip,
         
@@ -267,39 +271,51 @@ def discover_gateway_and_scan():
 
 def ping_sweep(network_str):
 
-    network = ipaddress.ip_network(network_str, strict=False)
-
-    total_hosts = sum(1 for _ in network.hosts())
-
-    results = [None] * total_hosts
-    threads = []
-
-
-    max_threads = 50
-    
-    host_list = list(network.hosts())
-    
-    for i in range(0, total_hosts, max_threads):
-
-        batch = range(i, min(i + max_threads, total_hosts))
-        for idx in batch:
-
-            ip = str(host_list[idx])
-            thread = threading.Thread(target=ping_host, args=(ip, results, idx))
-
-
-            threads.append(thread)
-
-            thread.start()
+    try:
         
-        for thread in threads:
+        network = ipaddress.ip_network(network_str, strict=False)
 
-            thread.join()
+        total_hosts = sum(1 for _ in network.hosts())
 
+        if total_hosts == 0:
+            
+            return []
 
+        results = [None] * total_hosts
         threads = []
+
+
+        max_threads = 50
+        
+        host_list = list(network.hosts())
+        
+        for i in range(0, total_hosts, max_threads):
+
+            batch = range(i, min(i + max_threads, total_hosts))
+            for idx in batch:
+
+                ip = str(host_list[idx])
+                thread = threading.Thread(target=ping_host, args=(ip, results, idx))
+
+
+                threads.append(thread)
+
+                thread.start()
+            
+            for thread in threads:
+
+                thread.join()
+
+
+            threads = []
+        
+        return [r for r in results if r and r['status'] == 'active']
     
-    return [r for r in results if r and r['status'] == 'active']
+    except Exception as e:
+        
+        print(f"[-] Invalid network range: {network_str}")
+        
+        return []
 
 
 def arp_scan_linux(network_str):
@@ -402,6 +418,20 @@ def arp_scan(network_str):
 
 def network_discovery(network_str=None, mode='auto'):
     
+    if network_str:
+        
+        try:
+            
+            ipaddress.ip_network(network_str, strict=False)
+            
+        except:
+            
+            print(f"[-] Invalid network format: {network_str}")
+            
+            print("[*] Please use CIDR format like: 192.168.1.0/24")
+            
+            return []
+    
     if mode == 'gateway':
         
         results, gateway_info = discover_gateway_and_scan()
@@ -434,7 +464,9 @@ def network_discovery(network_str=None, mode='auto'):
             
             devices = ping_sweep(iface['network'])
             
-            all_devices.extend(devices)
+            if devices:
+                
+                all_devices.extend(devices)
         
         return all_devices
     
@@ -449,6 +481,10 @@ def network_discovery(network_str=None, mode='auto'):
         print("[*] Method: Ping sweep + ARP scan")
         
         ping_results = ping_sweep(network_str)
+        
+        if ping_results is None:
+            
+            ping_results = []
         
         arp_results = arp_scan(network_str)
         
@@ -482,11 +518,13 @@ def smart_discovery():
 
     router_ip = get_router_ip()
     
-    if router_ip:
+    if router_ip and router_ip != '127.0.0.1':
         
         print("[*] Router detected, scanning entire network")
         
-        return discover_gateway_and_scan()[0]
+        results, _ = discover_gateway_and_scan()
+        
+        return results
     
     else:
         
