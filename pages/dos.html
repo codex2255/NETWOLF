@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="../assets/css/dos.css">
 </head>
 <body>
+
     <nav id="navbar">
         <div class="nav-logo">NETWOLF</div>
         <ul class="nav-links">
@@ -68,7 +69,9 @@
                         <input type="number" id="threadCount" placeholder="e.g. 4" min="1" max="4" value="4" />
                     </div>
                 </div>
-                <p id="errorMsg" class="error-msg hidden">&#9888; Please enter a valid IP address and port number.</p>
+
+                <p id="errorMsg" class="error-msg hidden">&#9888; Please enter a valid IP and port.</p>
+
                 <div id="btnRow">
                     <button id="startBtn" onclick="startAttack()">&#9658; START ATTACK</button>
                     <button id="stopBtn" onclick="stopAttack()" disabled>&#9646;&#9646; STOP</button>

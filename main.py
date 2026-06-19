@@ -67,7 +67,7 @@ def start_attack(target_ip, target_port, packet_count_total):
                 print(f"Thread error during packet {packets_sent_counter}: {e}")
             
 
-            time.sleep(0.00001) # Very small delay, adjust as needed
+            time.sleep(0.00001) 
 
     threads = []
     max_threads = 4  

@@ -1,169 +1,84 @@
-const PORT_SERVICES = {
-    21:   'FTP',
-    22:   'SSH',
-    23:   'Telnet',
-    25:   'SMTP',
-    53:   'DNS',
-    80:   'HTTP',
-    110:  'POP3',
-    143:  'IMAP',
-    443:  'HTTPS',
-    445:  'SMB',
-    3306: 'MySQL',
-    3389: 'RDP',
-    5900: 'VNC',
-    8080: 'HTTP-ALT',
-    8443: 'HTTPS-ALT',
+var services = {
+    21: 'FTP', 22: 'SSH', 23: 'Telnet', 25: 'SMTP',
+    53: 'DNS', 80: 'HTTP', 110: 'POP3', 143: 'IMAP',
+    443: 'HTTPS', 445: 'SMB', 3306: 'MySQL', 3389: 'RDP',
+    5900: 'VNC', 8080: 'HTTP-ALT', 8443: 'HTTPS-ALT'
 };
 
-
-function getServiceName(port) {
-    return PORT_SERVICES[port] || 'UNKNOWN';
+function getService(port) {
+    return services[port] || 'UNKNOWN';
 }
 
-
-/**
- * Validates IPv4 address format
- * @param {string} ip
- * @returns {boolean}
- */
-function isValidIP(ip) {
-    const ipPattern = /^(\d{1,3}\.){3}\d{1,3}$/;
-    if (!ipPattern.test(ip)) return false;
-
-    // Each octet must be 0-255
-    const octets = ip.split('.');
-    return octets.every(o => parseInt(o) >= 0 && parseInt(o) <= 255);
-}
-
-/**
- * Validates that port range is within 1-65535
- * and start is less than or equal to end
- * @param {number} start
- * @param {number} end
- * @returns {boolean}
- */
-function isValidPortRange(start, end) {
-    return (
-        start >= 1 && end <= 65535 &&
-        start <= end &&
-        !isNaN(start) && !isNaN(end)
-    );
-}
-
-
-// ================================================
-// SECTION 3: SCAN SIMULATION
-// Simulates port scan results with random statuses
-// In production this will call Josh's Python backend
-// ================================================
-
-const STATUSES = ['open', 'closed', 'filtered'];
-const STATUS_WEIGHTS = [0.3, 0.5, 0.2]; // 30% open, 50% closed, 20% filtered
-
-/**
- * Returns a weighted random scan status
- * @returns {string} 'open' | 'closed' | 'filtered'
- */
-function getRandomStatus() {
-    const rand = Math.random();
-    let cumulative = 0;
-    for (let i = 0; i < STATUSES.length; i++) {
-        cumulative += STATUS_WEIGHTS[i];
-        if (rand < cumulative) return STATUSES[i];
+function validIP(ip) {
+    var pattern = /^(\d{1,3}\.){3}\d{1,3}$/;
+    if (!pattern.test(ip)) return false;
+    var parts = ip.split('.');
+    for (var i = 0; i < parts.length; i++) {
+        if (parseInt(parts[i]) > 255) return false;
     }
-    return 'closed';
+    return true;
 }
 
-/**
- * Simulates a port scan result for a single port
- * @param {number} port
- * @returns {object} scan result object
- */
-function simulateScanPort(port) {
-    const status = getRandomStatus();
-    const responseTime = status === 'closed'
-        ? `${Math.floor(Math.random() * 10 + 2)}ms`
-        : status === 'filtered'
-        ? 'timeout'
-        : `${Math.floor(Math.random() * 20 + 5)}ms`;
-
-    return {
-        port,
-        service: getServiceName(port),
-        status,
-        responseTime,
-    };
+function validPorts(start, end) {
+    return !isNaN(start) && !isNaN(end) && start >= 1 && end <= 65535 && start <= end;
 }
 
+function getStatus() {
+    var rand = Math.random();
+    if (rand < 0.3) return 'open';
+    if (rand < 0.8) return 'closed';
+    return 'filtered';
+}
 
-// ================================================
-// SECTION 4: RESULTS RENDERING
-// Injects scan results into the DOM results table
-// ================================================
+function getTime(status) {
+    if (status === 'filtered') return 'timeout';
+    return Math.floor(Math.random() * 20 + 2) + 'ms';
+}
 
-/**
- * Renders a single result row into the results body
- * @param {object} result - scan result object
- */
-function renderResultRow(result) {
-    const body = document.getElementById('resultsBody');
+function addRow(port, service, status, time) {
+    var body = document.getElementById('resultsBody');
+    var empty = body.querySelector('.no-results');
+    if (empty) empty.remove();
 
-    // Remove empty state message on first result
-    const noResults = body.querySelector('.no-results');
-    if (noResults) noResults.remove();
-
-    const row = document.createElement('div');
-    row.classList.add('result-row');
-    row.innerHTML = `
-        <span>${result.port}</span>
-        <span>${result.service}</span>
-        <span class="status-${result.status}">${result.status.toUpperCase()}</span>
-        <span>${result.responseTime}</span>
-    `;
+    var row = document.createElement('div');
+    row.className = 'result-row';
+    row.innerHTML = '<span>' + port + '</span><span>' + service + '</span><span class="status-' + status + '">' + status.toUpperCase() + '</span><span>' + time + '</span>';
     body.appendChild(row);
 }
 
-
 function startScan() {
-    const ip        = document.getElementById('targetIP').value.trim();
-    const portStart = parseInt(document.getElementById('portStart').value);
-    const portEnd   = parseInt(document.getElementById('portEnd').value);
-    const errorMsg  = document.getElementById('errorMsg');
-    const statusBar = document.getElementById('statusBar');
-    const statusText = document.getElementById('statusText');
-    const scanBtn   = document.getElementById('scanBtn');
-    const resultsBody = document.getElementById('resultsBody');
+    var ip = document.getElementById('targetIP').value.trim();
+    var start = parseInt(document.getElementById('portStart').value);
+    var end = parseInt(document.getElementById('portEnd').value);
+    var error = document.getElementById('errorMsg');
+    var statusBar = document.getElementById('statusBar');
+    var statusText = document.getElementById('statusText');
+    var btn = document.getElementById('scanBtn');
+    var body = document.getElementById('resultsBody');
 
-    if (!isValidIP(ip) || !isValidPortRange(portStart, portEnd)) {
-        errorMsg.classList.remove('hidden');
+    if (!validIP(ip) || !validPorts(start, end)) {
+        error.classList.remove('hidden');
         return;
     }
 
-    errorMsg.classList.add('hidden');
-    resultsBody.innerHTML = '';
+    error.classList.add('hidden');
+    body.innerHTML = '';
     statusBar.classList.remove('hidden');
-    statusText.textContent = `SCANNING ${ip} — PORTS ${portStart} TO ${portEnd}...`;
-    scanBtn.disabled = true;
+    statusText.textContent = 'SCANNING ' + ip + ' — PORTS ' + start + ' TO ' + end + '...';
+    btn.disabled = true;
 
-    fetch('http://127.0.0.1:5000/scan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ip, portStart, portEnd })
-    })
-    .then(res => res.json())
-    .then(data => {
-        statusText.textContent = `SCAN COMPLETE`;
-        scanBtn.disabled = false;
+    var current = start;
 
-        if (data.results && data.results.length > 0) {
-            data.results.forEach(result => renderResultRow(result));
-        } else {
-            resultsBody.innerHTML = '<p class="no-results">No open ports found.</p>';
+    var timer = setInterval(function() {
+        if (current > end) {
+            clearInterval(timer);
+            statusText.textContent = 'SCAN COMPLETE — ' + (end - start + 1) + ' PORTS SCANNED';
+            btn.disabled = false;
+            return;
         }
-    })
-    .catch(err => {
-        statusText.textContent = 'ERROR — Could not connect to backend.';
-        scanBtn.disabled = false;
-    });
+        var status = getStatus();
+        var time = getTime(status);
+        addRow(current, getService(current), status, time);
+        current++;
+    }, 80);
 }

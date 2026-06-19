@@ -1,12 +1,3 @@
-/* ================================================
-   NETWOLF — Port Scanner Stylesheet
-   Project: NETWOLF Network Security Tool
-   Course: CS205 - Integrated Studio III
-   Team: Josh (Backend) & Vishesh (Frontend)
-   ================================================ */
-
-
-/* --- Base & Reset --- */
 * {
     margin: 0;
     padding: 0;
@@ -20,14 +11,9 @@ body {
     min-height: 100vh;
 }
 
-
-/* ================================================
-   NAVIGATION BAR — same as dashboard
-================================================ */
-
 #navbar {
     background-color: #111118;
-    border-bottom: 1px solid rgba(255, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(255,0,0,0.2);
     height: 52px;
     padding: 0 24px;
     display: flex;
@@ -38,35 +24,12 @@ body {
     z-index: 100;
 }
 
-.nav-logo {
-    color: #ff2222;
-    font-size: 18px;
-    font-weight: bold;
-    letter-spacing: 6px;
-}
-
-.nav-links {
-    list-style: none;
-    display: flex;
-    gap: 28px;
-}
-
-.nav-item {
-    color: #555;
-    font-size: 11px;
-    letter-spacing: 2px;
-    text-decoration: none;
-    transition: color 0.2s ease;
-}
-
+.nav-logo { color: #ff2222; font-size: 18px; font-weight: bold; letter-spacing: 6px; }
+.nav-links { list-style: none; display: flex; gap: 28px; }
+.nav-item { color: #555; font-size: 11px; letter-spacing: 2px; text-decoration: none; transition: color 0.2s; }
 .nav-item:hover { color: #ff4444; }
 .nav-item.active { color: #ff2222; }
-
-.nav-status {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
+.nav-status { display: flex; align-items: center; gap: 8px; }
 
 .status-dot {
     width: 8px;
@@ -81,31 +44,14 @@ body {
     50% { opacity: 0.3; }
 }
 
-.status-text {
-    color: #22ff66;
-    font-size: 11px;
-    letter-spacing: 1px;
-}
+.status-text { color: #22ff66; font-size: 11px; letter-spacing: 1px; }
 
-
-/* ================================================
-   MAIN LAYOUT
-================================================ */
-
-#mainLayout {
-    display: flex;
-    height: calc(100vh - 52px);
-}
-
-
-/* ================================================
-   SIDEBAR
-================================================ */
+#mainLayout { display: flex; height: calc(100vh - 52px); }
 
 #sidebar {
     width: 190px;
     background-color: #0d0d14;
-    border-right: 1px solid rgba(255, 0, 0, 0.1);
+    border-right: 1px solid rgba(255,0,0,0.1);
     padding: 20px 0;
     display: flex;
     flex-direction: column;
@@ -119,46 +65,19 @@ body {
     letter-spacing: 1px;
     text-decoration: none;
     border-left: 2px solid transparent;
-    transition: all 0.2s ease;
+    transition: all 0.2s;
 }
 
-.sidebar-item:hover {
-    color: #ff4444;
-    background-color: rgba(255, 0, 0, 0.05);
-}
+.sidebar-item:hover { color: #ff4444; background-color: rgba(255,0,0,0.05); }
+.sidebar-item.active { color: #ff2222; border-left: 2px solid #ff2222; background-color: rgba(255,0,0,0.07); }
 
-.sidebar-item.active {
-    color: #ff2222;
-    border-left: 2px solid #ff2222;
-    background-color: rgba(255, 0, 0, 0.07);
-}
-
-
-/* ================================================
-   MAIN CONTENT
-================================================ */
-
-#mainContent {
-    flex: 1;
-    padding: 28px;
-    overflow-y: auto;
-}
-
-.page-title {
-    color: #ff2222;
-    font-size: 13px;
-    letter-spacing: 4px;
-    margin-bottom: 24px;
-}
-
-
-/* ================================================
-   INPUT CARD
-================================================ */
+#mainContent { flex: 1; padding: 28px; overflow-y: auto; }
+.page-title { color: #ff2222; font-size: 13px; letter-spacing: 4px; margin-bottom: 24px; }
+.section-title { color: #ff2222; font-size: 11px; letter-spacing: 3px; margin-bottom: 14px; }
 
 #inputCard {
     background-color: #111118;
-    border: 1px solid rgba(255, 0, 0, 0.2);
+    border: 1px solid rgba(255,0,0,0.2);
     border-radius: 6px;
     padding: 20px;
     margin-bottom: 24px;
@@ -171,40 +90,24 @@ body {
     align-items: end;
 }
 
-/* Individual input field wrapper */
-.input-field {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.input-field label {
-    font-size: 10px;
-    color: #555;
-    letter-spacing: 2px;
-}
+.input-field { display: flex; flex-direction: column; gap: 6px; }
+.input-field label { font-size: 10px; color: #555; letter-spacing: 2px; }
 
 .input-field input {
     background-color: #0a0a0f;
-    border: 1px solid rgba(255, 0, 0, 0.25);
+    border: 1px solid rgba(255,0,0,0.25);
     border-radius: 4px;
     color: #ff4444;
     font-family: 'Courier New', monospace;
     font-size: 12px;
     padding: 8px 12px;
     outline: none;
-    transition: border-color 0.2s ease;
+    transition: border-color 0.2s;
 }
 
-.input-field input:focus {
-    border-color: #ff2222;
-}
+.input-field input:focus { border-color: #ff2222; }
+.input-field input::placeholder { color: #333; }
 
-.input-field input::placeholder {
-    color: #333;
-}
-
-/* Scan button */
 #scanBtn {
     background-color: #ff2222;
     color: #000;
@@ -216,36 +119,14 @@ body {
     font-weight: bold;
     letter-spacing: 2px;
     cursor: pointer;
-    transition: background-color 0.2s ease;
-    white-space: nowrap;
+    transition: background-color 0.2s;
 }
 
-#scanBtn:hover {
-    background-color: #ff4444;
-}
+#scanBtn:hover { background-color: #ff4444; }
+#scanBtn:disabled { background-color: #333; color: #666; cursor: not-allowed; }
 
-#scanBtn:disabled {
-    background-color: #333;
-    color: #666;
-    cursor: not-allowed;
-}
-
-/* Validation error message */
-.error-msg {
-    color: #ff4400;
-    font-size: 11px;
-    margin-top: 10px;
-    letter-spacing: 1px;
-}
-
-.hidden {
-    display: none !important;
-}
-
-
-/* ================================================
-   SCAN STATUS BAR
-================================================ */
+.error-msg { color: #ff4400; font-size: 11px; margin-top: 10px; letter-spacing: 1px; }
+.hidden { display: none !important; }
 
 #statusBar {
     display: flex;
@@ -254,11 +135,10 @@ body {
     margin-bottom: 20px;
     padding: 10px 16px;
     background-color: #111118;
-    border: 1px solid rgba(255, 0, 0, 0.2);
+    border: 1px solid rgba(255,0,0,0.2);
     border-radius: 6px;
 }
 
-/* Animated scanning dot */
 .status-dot-scan {
     width: 8px;
     height: 8px;
@@ -267,71 +147,40 @@ body {
     animation: pulse 0.8s infinite;
 }
 
-#statusText {
-    color: #ff2222;
-    font-size: 11px;
-    letter-spacing: 3px;
-}
-
-
-/* ================================================
-   RESULTS TABLE
-================================================ */
-
-.section-title {
-    color: #ff2222;
-    font-size: 11px;
-    letter-spacing: 3px;
-    margin-bottom: 14px;
-}
+#statusText { color: #ff2222; font-size: 11px; letter-spacing: 3px; }
 
 #resultsContainer {
     background-color: #080810;
-    border: 1px solid rgba(255, 0, 0, 0.15);
+    border: 1px solid rgba(255,0,0,0.15);
     border-radius: 6px;
     overflow: hidden;
 }
 
-/* Table header row */
 .results-header {
     display: grid;
     grid-template-columns: 80px 1fr 130px 150px;
     padding: 10px 16px;
     background-color: #111118;
-    border-bottom: 1px solid rgba(255, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(255,0,0,0.2);
     font-size: 10px;
     color: #555;
     letter-spacing: 2px;
 }
 
-/* Individual result row */
 .result-row {
     display: grid;
     grid-template-columns: 80px 1fr 130px 150px;
     padding: 10px 16px;
-    border-bottom: 1px solid rgba(255, 0, 0, 0.06);
+    border-bottom: 1px solid rgba(255,0,0,0.06);
     font-size: 11px;
     color: #666;
-    transition: background-color 0.15s ease;
 }
 
-.result-row:last-child {
-    border-bottom: none;
-}
+.result-row:hover { background-color: rgba(255,0,0,0.04); }
+.result-row:last-child { border-bottom: none; }
 
-.result-row:hover {
-    background-color: rgba(255, 0, 0, 0.04);
-}
-
-/* Port status colour classes */
-.status-open     { color: #22ff66; }
-.status-closed   { color: #ff3333; }
+.status-open { color: #22ff66; }
+.status-closed { color: #ff3333; }
 .status-filtered { color: #ffaa22; }
 
-/* Empty state message */
-.no-results {
-    padding: 20px 16px;
-    color: #333;
-    font-size: 11px;
-    letter-spacing: 1px;
-}
+.no-results { padding: 20px 16px; color: #333; font-size: 11px; letter-spacing: 1px; }
