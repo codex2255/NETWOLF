@@ -1,131 +1,113 @@
-let attackRunning  = false;
-let attackInterval = null;
-let timerInterval  = null;
-let packetsSent    = 0;
-let startTime      = null;
+var running = false;
+var timer = null;
+var elapsed = 0;
+var sent = 0;
+var startTime = null;
 
-function isValidIP(ip) {
-    const pattern = /^(\d{1,3}\.){3}\d{1,3}$/;
+function validIP(ip) {
+    var pattern = /^(\d{1,3}\.){3}\d{1,3}$/;
     if (!pattern.test(ip)) return false;
-    return ip.split('.').every(o => parseInt(o) >= 0 && parseInt(o) <= 255);
+    var parts = ip.split('.');
+    for (var i = 0; i < parts.length; i++) {
+        if (parseInt(parts[i]) > 255) return false;
+    }
+    return true;
 }
 
-function isValidPort(port) {
+function validPort(port) {
     return !isNaN(port) && port >= 1 && port <= 65535;
 }
 
-function addLog(type, label, message) {
-    const log   = document.getElementById('attackLog');
-    const empty = log.querySelector('.log-empty');
+function addLog(type, label, msg) {
+    var log = document.getElementById('attackLog');
+    var empty = log.querySelector('.log-empty');
     if (empty) empty.remove();
 
-    const time = new Date().toLocaleTimeString('en-GB');
-    const line = document.createElement('p');
-    line.classList.add('log-line');
-    line.innerHTML = `[${time}] <span class="log-${type}">${label}</span> — ${message}`;
-    log.appendChild(line);
+    var time = new Date().toLocaleTimeString('en-GB');
+    var p = document.createElement('p');
+    p.className = 'log-line';
+    p.innerHTML = '[' + time + '] <span class="log-' + type + '">' + label + '</span> — ' + msg;
+    log.appendChild(p);
     log.scrollTop = log.scrollHeight;
 }
 
-function setStatus(state, message) {
-    const dot  = document.querySelector('.status-dot-dos');
-    const text = document.getElementById('statusText');
-    dot.className    = `status-dot-dos ${state}`;
-    text.textContent = message;
-    text.style.color = state === 'running' ? '#ff2222' : state === 'done' ? '#22ff66' : '#555';
-}
-
-function setStatStatus(state, label) {
-    const el     = document.getElementById('statStatus');
-    el.className = `stat-value stat-${state}`;
-    el.textContent = label;
-}
-
-function resetStats() {
-    document.getElementById('statPackets').textContent = '0';
-    document.getElementById('statPPS').textContent     = '0';
-    document.getElementById('statTime').textContent    = '0s';
-    setStatStatus('idle', 'IDLE');
+function setStatus(state, msg) {
+    var dot = document.querySelector('.status-dot-dos');
+    var text = document.getElementById('statusText');
+    dot.className = 'status-dot-dos ' + state;
+    text.textContent = msg;
 }
 
 function startAttack() {
-    const ip      = document.getElementById('targetIP').value.trim();
-    const port    = parseInt(document.getElementById('targetPort').value);
-    const packets = parseInt(document.getElementById('packetCount').value);
-    const type    = document.getElementById('attackType').value;
-    const threads = parseInt(document.getElementById('threadCount').value) || 4;
-    const errorMsg = document.getElementById('errorMsg');
+    var ip = document.getElementById('targetIP').value.trim();
+    var port = parseInt(document.getElementById('targetPort').value);
+    var packets = parseInt(document.getElementById('packetCount').value);
+    var threads = parseInt(document.getElementById('threadCount').value) || 4;
+    var error = document.getElementById('errorMsg');
 
-    if (!isValidIP(ip) || !isValidPort(port) || isNaN(packets) || packets < 1) {
-        errorMsg.classList.remove('hidden');
+    if (!validIP(ip) || !validPort(port) || isNaN(packets) || packets < 1) {
+        error.classList.remove('hidden');
         return;
     }
 
-    errorMsg.classList.add('hidden');
-    attackRunning = true;
-    packetsSent   = 0;
-    startTime     = Date.now();
+    error.classList.add('hidden');
+    running = true;
+    sent = 0;
+    startTime = Date.now();
 
     document.getElementById('startBtn').disabled = true;
-    document.getElementById('stopBtn').disabled  = false;
-
-    setStatus('running', `ATTACKING ${ip}:${port} — ${type.replace('_', ' ')} — ${threads} THREADS`);
-    setStatStatus('running', 'RUNNING');
-
+    document.getElementById('stopBtn').disabled = false;
     document.getElementById('attackLog').innerHTML = '';
-    addLog('warn', 'INITIATED', `Attack started on ${ip}:${port} — ${packets} packets — ${type}`);
+    document.getElementById('statStatus').textContent = 'RUNNING';
+    document.getElementById('statStatus').className = 'stat-value stat-running';
 
-    const batchSize  = threads * 2;
-    const intervalMs = 100;
+    setStatus('running', 'ATTACKING ' + ip + ':' + port);
+    addLog('warn', 'INITIATED', 'Attack started on ' + ip + ':' + port + ' — ' + packets + ' packets');
 
-    attackInterval = setInterval(() => {
-        if (!attackRunning || packetsSent >= packets) {
-            finishAttack(packets);
+    var batch = threads * 2;
+
+    timer = setInterval(function() {
+        if (!running || sent >= packets) {
+            stopDone(packets);
             return;
         }
 
-        const remaining = packets - packetsSent;
-        const batch     = Math.min(batchSize, remaining);
-        packetsSent    += batch;
+        var remaining = packets - sent;
+        var add = Math.min(batch, remaining);
+        sent += add;
 
-        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-        const pps     = Math.floor(packetsSent / (elapsed > 0 ? elapsed : 1));
+        var secs = ((Date.now() - startTime) / 1000).toFixed(1);
+        var pps = Math.floor(sent / (secs > 0 ? secs : 1));
 
-        document.getElementById('statPackets').textContent = packetsSent;
-        document.getElementById('statPPS').textContent     = pps;
-        document.getElementById('statTime').textContent    = `${elapsed}s`;
+        document.getElementById('statPackets').textContent = sent;
+        document.getElementById('statPPS').textContent = pps;
+        document.getElementById('statTime').textContent = secs + 's';
 
-        if (packetsSent % 200 === 0 || packetsSent >= packets) {
-            addLog('ok', 'SENT', `${packetsSent}/${packets} packets sent to ${ip}:${port}`);
+        if (sent % 200 === 0 || sent >= packets) {
+            addLog('ok', 'SENT', sent + '/' + packets + ' packets sent');
         }
-
-    }, intervalMs);
+    }, 100);
 }
 
 function stopAttack() {
-    attackRunning = false;
-    clearInterval(attackInterval);
-    clearInterval(timerInterval);
-
+    running = false;
+    clearInterval(timer);
     document.getElementById('startBtn').disabled = false;
-    document.getElementById('stopBtn').disabled  = true;
-
-    setStatus('done', 'ATTACK STOPPED BY USER');
-    setStatStatus('done', 'STOPPED');
-    addLog('err', 'STOPPED', `Attack manually stopped — ${packetsSent} packets sent`);
+    document.getElementById('stopBtn').disabled = true;
+    document.getElementById('statStatus').textContent = 'STOPPED';
+    document.getElementById('statStatus').className = 'stat-value stat-done';
+    setStatus('done', 'ATTACK STOPPED');
+    addLog('err', 'STOPPED', 'Attack stopped — ' + sent + ' packets sent');
 }
 
-function finishAttack(total) {
-    attackRunning = false;
-    clearInterval(attackInterval);
-    clearInterval(timerInterval);
-
+function stopDone(total) {
+    running = false;
+    clearInterval(timer);
+    var secs = ((Date.now() - startTime) / 1000).toFixed(1);
     document.getElementById('startBtn').disabled = false;
-    document.getElementById('stopBtn').disabled  = true;
-
-    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-
-    setStatus('done', `ATTACK COMPLETE — ${total} PACKETS SENT IN ${elapsed}s`);
-    setStatStatus('done', 'DONE');
-    addLog('ok', 'COMPLETE', `Attack finished — ${total} packets sent in ${elapsed}s`);
+    document.getElementById('stopBtn').disabled = true;
+    document.getElementById('statStatus').textContent = 'DONE';
+    document.getElementById('statStatus').className = 'stat-value stat-done';
+    setStatus('done', 'ATTACK COMPLETE — ' + total + ' PACKETS SENT');
+    addLog('ok', 'COMPLETE', total + ' packets sent in ' + secs + 's');
 }
