@@ -65,6 +65,7 @@ function startScan() {
     body.innerHTML = '';
     statusBar.classList.remove('hidden');
     statusText.textContent = 'SCANNING ' + ip + ' — PORTS ' + start + ' TO ' + end + '...';
+    saveToStorage(ip, results);
     btn.disabled = true;
 
     var current = start;
@@ -81,4 +82,14 @@ function startScan() {
         addRow(current, getService(current), status, time);
         current++;
     }, 80);
+}
+
+function saveToStorage(ip, results) {
+    var time = new Date().toLocaleTimeString('en-GB');
+    var scanData = { ip: ip, results: results, time: time };
+    localStorage.setItem('netwolf_last_scan', JSON.stringify(scanData));
+    var logs = JSON.parse(localStorage.getItem('netwolf_logs') || '[]');
+    var openCount = results.filter(function(r) { return r.status == 'open'; }).length;
+    logs.push({ type: 'scan', time: time, target: ip, details: openCount + ' open ports found' });
+    localStorage.setItem('netwolf_logs', JSON.stringify(logs));
 }

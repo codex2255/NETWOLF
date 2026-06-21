@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NETWOLF - Logs</title>
+    <link rel="stylesheet" href="../assets/css/scanner.css">
+</head>
+<body>
+
+    <nav id="navbar">
+        <div class="nav-logo">NETWOLF</div>
+        <ul class="nav-links">
+            <li><a href="dashboard.html" class="nav-item">DASHBOARD</a></li>
+            <li><a href="scanner.html" class="nav-item">PORT SCANNER</a></li>
+            <li><a href="dos.html" class="nav-item">DoS MODULE</a></li>
+            <li><a href="logs.html" class="nav-item active">LOGS</a></li>
+        </ul>
+        <div class="nav-status">
+            <span class="status-dot"></span>
+            <span class="status-text">SYSTEM ONLINE</span>
+        </div>
+    </nav>
+
+    <div id="mainLayout">
+        <aside id="sidebar">
+            <a href="dashboard.html" class="sidebar-item">&#9658; DASHBOARD</a>
+            <a href="scanner.html" class="sidebar-item">&#9658; PORT SCANNER</a>
+            <a href="dos.html" class="sidebar-item">&#9658; DoS MODULE</a>
+            <a href="logs.html" class="sidebar-item active">&#9658; SCAN LOGS</a>
+            <a href="reports.html" class="sidebar-item">&#9658; REPORTS</a>
+            <a href="settings.html" class="sidebar-item">&#9658; SETTINGS</a>
+        </aside>
+
+        <main id="mainContent">
+            <h1 class="page-title">// SCAN LOGS</h1>
+
+            <div id="logsList">
+                <p id="emptyMsg" style="color:#999; font-size:11px; letter-spacing:1px;">No logs yet.</p>
+            </div>
+
+            <button onclick="clearLogs()" style="margin-top:20px; background:none; border:1px solid #ff2222; color:#ff4444; font-family:'Courier New',monospace; font-size:11px; padding:8px 18px; cursor:pointer;">CLEAR LOGS</button>
+        </main>
+    </div>
+
+    <script src="../assets/js/netwolf.js"></script>
+    <script>
+        function loadLogs() {
+            var logs = localStorage.getItem('netwolf_logs');
+            if (!logs) return;
+            logs = JSON.parse(logs);
+
+            var list = document.getElementById('logsList');
+            var empty = document.getElementById('emptyMsg');
+
+            if (logs.length == 0) return;
+
+            empty.style.display = 'none';
+
+            for (var i = logs.length - 1; i >= 0; i--) {
+                var p = document.createElement('p');
+                p.style.fontSize = '11px';
+                p.style.padding = '8px 0';
+                p.style.borderBottom = '1px solid rgba(255,0,0,0.1)';
+                p.style.color = '#cccccc';
+                p.innerHTML = '[' + logs[i].time + '] ' + logs[i].type.toUpperCase() + ' — ' + logs[i].target + ' — ' + logs[i].details;
+                list.appendChild(p);
+            }
+        }
+
+        function clearLogs() {
+            localStorage.removeItem('netwolf_logs');
+            location.reload();
+        }
+
+        loadLogs();
+    </script>
+</body>
+</html>

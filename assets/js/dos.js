@@ -109,5 +109,9 @@ function stopDone(total) {
     document.getElementById('statStatus').textContent = 'DONE';
     document.getElementById('statStatus').className = 'stat-value stat-done';
     setStatus('done', 'ATTACK COMPLETE — ' + total + ' PACKETS SENT');
+    var t = new Date().toLocaleTimeString('en-GB');
+var logs = JSON.parse(localStorage.getItem('netwolf_logs') || '[]');
+logs.push({ type: 'dos', time: t, target: ip + ':' + port, details: packets + ' packets sent in ' + secs + 's', packets: packets });
+localStorage.setItem('netwolf_logs', JSON.stringify(logs));
     addLog('ok', 'COMPLETE', total + ' packets sent in ' + secs + 's');
 }

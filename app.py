@@ -1,13 +1,31 @@
 import socket
 import threading
 import time
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory, send_file
 from flask_cors import CORS
 from utils.attack import send_packet
+import os
 
 app = Flask(__name__)
 CORS(app)
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+@app.route('/')
+def index():
+    return send_file(os.path.join(BASE_DIR, 'index.html'))
+
+@app.route('/pages/<path:filename>')
+def pages(filename):
+    return send_from_directory(os.path.join(BASE_DIR, 'pages'), filename)
+
+@app.route('/assets/<path:filename>')
+def assets(filename):
+    return send_from_directory(os.path.join(BASE_DIR, 'assets'), filename)
+
+@app.route('/health', methods=['GET'])
+def health():
+    return jsonify({'status': 'online'})
 
 def scan_port(target, port, results, lock):
     try:
@@ -22,7 +40,6 @@ def scan_port(target, port, results, lock):
         with lock:
             results.append({'port': port, 'status': 'error', 'protocol': 'TCP'})
 
-
 def run_scan(target, ports):
     threads = []
     results = []
@@ -34,7 +51,6 @@ def run_scan(target, ports):
     for t in threads:
         t.join()
     return results
-
 
 def run_attack(target_ip, target_port, packet_count):
     sent = [0]
@@ -60,12 +76,6 @@ def run_attack(target_ip, target_port, packet_count):
     for t in threads:
         t.join()
 
-
-@app.route('/health', methods=['GET'])
-def health():
-    return jsonify({'status': 'online'})
-
-
 @app.route('/scan', methods=['POST'])
 def scan():
     data = request.get_json()
@@ -78,7 +88,6 @@ def scan():
     results = run_scan(ip, ports)
     return jsonify({'success': True, 'results': results})
 
-
 @app.route('/dos', methods=['POST'])
 def dos():
     data = request.get_json()
@@ -90,6 +99,6 @@ def dos():
     run_attack(ip, int(port), int(packets))
     return jsonify({'success': True, 'message': f'Attack completed on {ip}:{port}'})
 
-
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    print('[*] NETWOLF running at http://127.0.0.1:5000')
+    app.run(debug=True, port=5000)  
