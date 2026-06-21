@@ -26,7 +26,7 @@ body {
 
 .nav-logo { color: #ff2222; font-size: 18px; font-weight: bold; letter-spacing: 6px; }
 .nav-links { list-style: none; display: flex; gap: 28px; }
-.nav-item { color: #555; font-size: 11px; letter-spacing: 2px; text-decoration: none; transition: color 0.2s; }
+.nav-item { color: #cccccc; font-size: 11px; letter-spacing: 2px; text-decoration: none; transition: color 0.2s; }
 .nav-item:hover { color: #ff4444; }
 .nav-item.active { color: #ff2222; }
 .nav-status { display: flex; align-items: center; gap: 8px; }
@@ -61,7 +61,7 @@ body {
 .sidebar-item {
     padding: 10px 20px;
     font-size: 11px;
-    color: #555;
+    color: #cccccc;
     letter-spacing: 1px;
     text-decoration: none;
     border-left: 2px solid transparent;
@@ -109,7 +109,7 @@ body {
 }
 
 .input-field { display: flex; flex-direction: column; gap: 6px; }
-.input-field label { font-size: 10px; color: #555; letter-spacing: 2px; }
+.input-field label { font-size: 10px; color: #cccccc; letter-spacing: 2px; }
 
 .input-field input,
 .input-field select {
@@ -126,7 +126,7 @@ body {
 
 .input-field input:focus,
 .input-field select:focus { border-color: #ff2222; }
-.input-field input::placeholder { color: #333; }
+.input-field input::placeholder { color: #999999; }
 
 #btnRow { display: flex; gap: 12px; }
 
@@ -145,7 +145,7 @@ body {
 }
 
 #startBtn:hover { background-color: #ff4444; }
-#startBtn:disabled { background-color: #333; color: #666; cursor: not-allowed; }
+#startBtn:disabled { background-color: #999999; color: #cccccc; cursor: not-allowed; }
 
 #stopBtn {
     background-color: transparent;
@@ -182,9 +182,9 @@ body {
     padding: 16px;
 }
 
-.stat-label { font-size: 10px; color: #555; letter-spacing: 2px; margin-bottom: 8px; }
+.stat-label { font-size: 10px; color: #cccccc; letter-spacing: 2px; margin-bottom: 8px; }
 .stat-value { font-size: 24px; color: #ff2222; font-weight: bold; }
-.stat-idle { color: #555; font-size: 14px; margin-top: 4px; }
+.stat-idle { color: #cccccc; font-size: 14px; margin-top: 4px; }
 .stat-running { color: #ff2222; font-size: 14px; margin-top: 4px; }
 .stat-done { color: #22ff66; font-size: 14px; margin-top: 4px; }
 
@@ -200,11 +200,11 @@ body {
 }
 
 .status-dot-dos { width: 8px; height: 8px; border-radius: 50%; }
-.status-dot-dos.idle { background-color: #555; }
+.status-dot-dos.idle { background-color: #cccccc; }
 .status-dot-dos.running { background-color: #ff2222; animation: pulse 0.6s infinite; }
 .status-dot-dos.done { background-color: #22ff66; }
 
-#statusText { font-size: 11px; letter-spacing: 3px; color: #555; }
+#statusText { font-size: 11px; letter-spacing: 3px; color: #cccccc; }
 
 #attackLog {
     background-color: #080810;
@@ -217,8 +217,8 @@ body {
     overflow-y: auto;
 }
 
-.log-line { color: #444; }
+.log-line { color: #aaaaaa; }
 .log-ok { color: #22ff66; }
 .log-warn { color: #ffaa22; }
 .log-err { color: #ff3333; }
-.log-empty { color: #333; font-size: 11px; letter-spacing: 1px; }
+.log-empty { color: #999999; font-size: 11px; letter-spacing: 1px; }
