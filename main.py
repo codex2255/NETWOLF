@@ -318,6 +318,10 @@ def pages(filename):
 def assets(filename):
     return send_from_directory(os.path.join(BASE_DIR, 'assets'), filename)
 
+@app.route('/health', methods=['GET'])
+def api_health():
+    return jsonify({'status': 'online'})
+
 @app.route('/scan', methods=['POST'])
 def api_scan():
     data = request.get_json()
@@ -328,6 +332,53 @@ def api_scan():
         return jsonify({'success': False, 'message': 'Missing fields'}), 400
     
     results = port_scan(ip, int(start), int(end))
+    return jsonify({'success': True, 'results': results})
+
+@app.route('/discovery', methods=['POST'])
+def api_discovery():
+    data = request.get_json()
+    range_input = data.get('range')
+    if not range_input:
+        return jsonify({'success': False, 'message': 'Missing range'}), 400
+    
+    # Use network_discovery from utils
+    results = network_discovery(range_input, enhanced=True)
+    return jsonify({'success': True, 'results': results})
+
+@app.route('/discovery/auto', methods=['POST'])
+def api_discovery_auto():
+    # Detect local network automatically
+    hostname = socket.gethostname()
+    local_ip = socket.gethostbyname(hostname)
+    ip_parts = local_ip.split('.')
+    network = f"{ip_parts[0]}.{ip_parts[1]}.{ip_parts[2]}.0/24"
+    
+    results = network_discovery(network, enhanced=True)
+    return jsonify({'success': True, 'results': results, 'network': network})
+
+@app.route('/os_detect', methods=['POST'])
+def api_os_detect():
+    data = request.get_json()
+    ip = data.get('ip')
+    if not ip:
+        return jsonify({'success': False, 'message': 'Missing IP'}), 400
+    
+    results = os_fingerprint(ip)
+    return jsonify({
+        'success': True, 
+        'os': results['os'], 
+        'ttl': results['ttl']
+    })
+
+@app.route('/service_detect', methods=['POST'])
+def api_service_detect():
+    data = request.get_json()
+    ip = data.get('ip')
+    ports = data.get('ports')
+    if not ip or not ports:
+        return jsonify({'success': False, 'message': 'Missing IP or ports'}), 400
+    
+    results = service_detection(ip, ports)
     return jsonify({'success': True, 'results': results})
 
 @app.route('/dos', methods=['POST'])

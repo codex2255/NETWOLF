@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NETWOLF — OS & Service Detection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../assets/css/netwolf.css">
+    <link rel="stylesheet" href="../assets/css/scanner.css">
+</head>
+<body>
+
+    <nav id="navbar">
+        <div class="nav-logo">NETWOLF</div>
+        <ul class="nav-links">
+            <li><a href="dashboard.html" class="nav-item">DASHBOARD</a></li>
+            <li><a href="discovery.html" class="nav-item">DISCOVERY</a></li>
+            <li><a href="scanner.html" class="nav-item">PORT SCANNER</a></li>
+            <li><a href="os_detect.html" class="nav-item active">OS / SERVICES</a></li>
+            <li><a href="dos.html" class="nav-item">DoS MODULE</a></li>
+        </ul>
+        <div class="nav-status">
+            <span class="status-dot"></span>
+            <span class="status-text">SYSTEM ONLINE</span>
+        </div>
+    </nav>
+
+    <div id="mainLayout">
+        <aside id="sidebar">
+            <a href="dashboard.html" class="sidebar-item">&#9658; DASHBOARD</a>
+            <a href="discovery.html" class="sidebar-item">&#9658; DISCOVERY</a>
+            <a href="scanner.html" class="sidebar-item">&#9658; PORT SCANNER</a>
+            <a href="os_detect.html" class="sidebar-item active">&#9658; OS / SERVICES</a>
+            <a href="dos.html" class="sidebar-item">&#9658; DoS MODULE</a>
+        </aside>
+
+        <main id="mainContent">
+            <h1 class="page-title">// OS & SERVICE DETECTION</h1>
+
+            <div id="inputCard">
+                <div id="inputRow">
+                    <div class="input-field">
+                        <label for="targetIP">TARGET IP / HOSTNAME</label>
+                        <input type="text" id="targetIP" placeholder="e.g. 192.168.1.1" />
+                    </div>
+                    <button id="detectBtn" onclick="runDetection()">&#9658; ANALYZE</button>
+                </div>
+                <div class="input-field" style="margin-top: 10px;">
+                    <label for="targetPorts">PORTS FOR SERVICE DETECTION (OPTIONAL)</label>
+                    <input type="text" id="targetPorts" placeholder="e.g. 80, 443, 22" />
+                </div>
+            </div>
+
+            <div id="statusBar" class="hidden">
+                <span class="status-dot-scan"></span>
+                <span id="statusText">ANALYZING TARGET...</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h2 class="section-title">// OS FINGERPRINT</h2>
+                    <div id="osResults" class="results-container" style="background: rgba(15, 18, 53, 0.8); border: 1px solid #ff3366; padding: 20px; border-radius: 5px; min-height: 100px;">
+                        <p class="no-results">No OS data yet.</p>
+                    </div>
+                </div>
+                <div>
+                    <h2 class="section-title">// SERVICE BANNERS</h2>
+                    <div id="serviceResults" class="results-container" style="background: rgba(15, 18, 53, 0.8); border: 1px solid #00ff9d; padding: 20px; border-radius: 5px; min-height: 100px;">
+                        <p class="no-results">No service data yet.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../assets/js/netwolf.js"></script>
+    <script src="../assets/js/os_detect.js"></script>
+</body>
+</html>
