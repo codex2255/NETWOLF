@@ -46,7 +46,7 @@ function addRow(port, service, status, time) {
     body.appendChild(row);
 }
 
-function startScan() {
+async function startScan() {
     var ip = document.getElementById('targetIP').value.trim();
     var start = parseInt(document.getElementById('portStart').value);
     var end = parseInt(document.getElementById('portEnd').value);
@@ -65,23 +65,33 @@ function startScan() {
     body.innerHTML = '';
     statusBar.classList.remove('hidden');
     statusText.textContent = 'SCANNING ' + ip + ' — PORTS ' + start + ' TO ' + end + '...';
-    saveToStorage(ip, results);
     btn.disabled = true;
 
-    var current = start;
+    try {
+        const response = await fetch('/scan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ip: ip, portStart: start, portEnd: end })
+        });
 
-    var timer = setInterval(function() {
-        if (current > end) {
-            clearInterval(timer);
+        const data = await response.json();
+
+        if (data.success && data.results) {
+            data.results.forEach(r => {
+                if (r.status === 'open') {
+                    addRow(r.port, getService(r.port), r.status, 'n/a');
+                }
+            });
             statusText.textContent = 'SCAN COMPLETE — ' + (end - start + 1) + ' PORTS SCANNED';
-            btn.disabled = false;
-            return;
+            saveToStorage(ip, data.results);
+        } else {
+            statusText.textContent = 'SCAN FAILED: ' + (data.message || 'Unknown error');
         }
-        var status = getStatus();
-        var time = getTime(status);
-        addRow(current, getService(current), status, time);
-        current++;
-    }, 80);
+    } catch (err) {
+        statusText.textContent = 'SCAN ERROR: ' + err.message;
+    } finally {
+        btn.disabled = false;
+    }
 }
 
 function saveToStorage(ip, results) {

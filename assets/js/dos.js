@@ -38,11 +38,12 @@ function setStatus(state, msg) {
     text.textContent = msg;
 }
 
-function startAttack() {
+async function startAttack() {
     var ip = document.getElementById('targetIP').value.trim();
     var port = parseInt(document.getElementById('targetPort').value);
     var packets = parseInt(document.getElementById('packetCount').value);
     var threads = parseInt(document.getElementById('threadCount').value) || 4;
+    var attackType = document.getElementById('attackType').value;
     var error = document.getElementById('errorMsg');
 
     if (!validIP(ip) || !validPort(port) || isNaN(packets) || packets < 1) {
@@ -62,31 +63,39 @@ function startAttack() {
     document.getElementById('statStatus').className = 'stat-value stat-running';
 
     setStatus('running', 'ATTACKING ' + ip + ':' + port);
-    addLog('warn', 'INITIATED', 'Attack started on ' + ip + ':' + port + ' — ' + packets + ' packets');
+    addLog('warn', 'INITIATED', 'Attack started on ' + ip + ':' + port + ' — ' + packets + ' packets (' + attackType + ')');
 
-    var batch = threads * 2;
-
+    // Start UI update timer
     timer = setInterval(function() {
-        if (!running || sent >= packets) {
-            stopDone(packets);
+        if (!running) {
+            clearInterval(timer);
             return;
         }
-
-        var remaining = packets - sent;
-        var add = Math.min(batch, remaining);
-        sent += add;
-
         var secs = ((Date.now() - startTime) / 1000).toFixed(1);
-        var pps = Math.floor(sent / (secs > 0 ? secs : 1));
-
-        document.getElementById('statPackets').textContent = sent;
-        document.getElementById('statPPS').textContent = pps;
         document.getElementById('statTime').textContent = secs + 's';
-
-        if (sent % 200 === 0 || sent >= packets) {
-            addLog('ok', 'SENT', sent + '/' + packets + ' packets sent');
-        }
     }, 100);
+
+    try {
+        const response = await fetch('/dos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ip: ip, port: port, packetCount: packets, threads: threads, type: attackType })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            sent = packets;
+            document.getElementById('statPackets').textContent = sent;
+            stopDone(packets);
+        } else {
+            addLog('err', 'FAILED', data.message || 'Attack failed');
+            stopAttack();
+        }
+    } catch (err) {
+        addLog('err', 'ERROR', err.message);
+        stopAttack();
+    }
 }
 
 function stopAttack() {
