@@ -361,7 +361,7 @@ def api_dos():
     return jsonify({'success': True, 'message': f'Attack {attack_type} started on {ip}'})
 
 def start_web_server():
-    app.run(debug=False, port=5000, host='0.0.0.0')
+    app.run(debug=False, port=5555, host='0.0.0.0')
 
 if __name__ == "__main__":
     print("[*] NetWolf v1.0 - Ethical Network Testing Tool")
