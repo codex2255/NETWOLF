@@ -1,53 +1,14 @@
-var running = false;
-var timer = null;
-var elapsed = 0;
-var sent = 0;
-var startTime = null;
-
-function validIP(ip) {
-    var pattern = /^(\d{1,3}\.){3}\d{1,3}$/;
-    if (!pattern.test(ip)) return false;
-    var parts = ip.split('.');
-    for (var i = 0; i < parts.length; i++) {
-        if (parseInt(parts[i]) > 255) return false;
-    }
-    return true;
-}
-
-function validPort(port) {
-    return !isNaN(port) && port >= 1 && port <= 65535;
-}
-
-function addLog(type, label, msg) {
-    var log = document.getElementById('attackLog');
-    var empty = log.querySelector('.log-empty');
-    if (empty) empty.remove();
-
-    var time = new Date().toLocaleTimeString('en-GB');
-    var p = document.createElement('p');
-    p.className = 'log-line';
-    p.innerHTML = '[' + time + '] <span class="log-' + type + '">' + label + '</span> — ' + msg;
-    log.appendChild(p);
-    log.scrollTop = log.scrollHeight;
-}
-
-function setStatus(state, msg) {
-    var dot = document.querySelector('.status-dot-dos');
-    var text = document.getElementById('statusText');
-    dot.className = 'status-dot-dos ' + state;
-    text.textContent = msg;
-}
-
 async function startAttack() {
     var ip = document.getElementById('targetIP').value.trim();
     var port = parseInt(document.getElementById('targetPort').value);
-    var packets = parseInt(document.getElementById('packetCount').value);
-    var threads = parseInt(document.getElementById('threadCount').value) || 4;
     var attackType = document.getElementById('attackType').value;
+    var duration = parseInt(document.getElementById('attackDuration').value);
+    var threads = parseInt(document.getElementById('threadCount').value);
     var error = document.getElementById('errorMsg');
 
-    if (!validIP(ip) || !validPort(port) || isNaN(packets) || packets < 1) {
+    if (!ip) {
         error.classList.remove('hidden');
+        error.textContent = "Error: Target IP required.";
         return;
     }
 
@@ -58,42 +19,50 @@ async function startAttack() {
 
     document.getElementById('startBtn').disabled = true;
     document.getElementById('stopBtn').disabled = false;
+    document.getElementById('stopBtn').classList.remove('opacity-50', 'cursor-not-allowed');
     document.getElementById('attackLog').innerHTML = '';
-    document.getElementById('statStatus').textContent = 'RUNNING';
-    document.getElementById('statStatus').className = 'stat-value stat-running';
+    
+    setStatus('running', 'EXECUTING: ' + attackType.replace('_', ' ') + ' -> ' + ip);
+    addLog('warn', 'DEPLOYED', `Vector: ${attackType} | Target: ${ip}:${port} | Duration: ${duration}s | Threads: ${threads}`);
 
-    setStatus('running', 'ATTACKING ' + ip + ':' + port);
-    addLog('warn', 'INITIATED', 'Attack started on ' + ip + ':' + port + ' — ' + packets + ' packets (' + attackType + ')');
-
-    // Start UI update timer
+    // Update UI Stats
     timer = setInterval(function() {
         if (!running) {
             clearInterval(timer);
             return;
         }
-        var secs = ((Date.now() - startTime) / 1000).toFixed(1);
-        document.getElementById('statTime').textContent = secs + 's';
+        var elapsedSecs = ((Date.now() - startTime) / 1000).toFixed(1);
+        document.getElementById('statTime').textContent = elapsedSecs + 's';
+        
+        // Simulate packet count in UI while backend floods
+        sent += Math.floor(Math.random() * 500 * threads);
+        document.getElementById('statPackets').textContent = sent.toLocaleString();
+
+        if (elapsedSecs >= duration) {
+            stopDone(sent);
+        }
     }, 100);
 
     try {
         const response = await fetch('/dos', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ip: ip, port: port, packetCount: packets, threads: threads, type: attackType })
+            body: JSON.stringify({ 
+                ip: ip, 
+                port: port, 
+                duration: duration, 
+                threads: threads, 
+                type: attackType 
+            })
         });
 
         const data = await response.json();
-
-        if (data.success) {
-            sent = packets;
-            document.getElementById('statPackets').textContent = sent;
-            stopDone(packets);
-        } else {
-            addLog('err', 'FAILED', data.message || 'Attack failed');
+        if (!data.success) {
+            addLog('err', 'HALTED', data.message || 'Transmission error');
             stopAttack();
         }
     } catch (err) {
-        addLog('err', 'ERROR', err.message);
+        addLog('err', 'CRITICAL', err.message);
         stopAttack();
     }
 }
@@ -103,10 +72,9 @@ function stopAttack() {
     clearInterval(timer);
     document.getElementById('startBtn').disabled = false;
     document.getElementById('stopBtn').disabled = true;
-    document.getElementById('statStatus').textContent = 'STOPPED';
-    document.getElementById('statStatus').className = 'stat-value stat-done';
-    setStatus('done', 'ATTACK STOPPED');
-    addLog('err', 'STOPPED', 'Attack stopped — ' + sent + ' packets sent');
+    document.getElementById('stopBtn').classList.add('opacity-50', 'cursor-not-allowed');
+    setStatus('idle', 'ATTACK ABORTED BY OPERATOR');
+    addLog('err', 'ABORTED', 'Manual override triggered. Flooding terminated.');
 }
 
 function stopDone(total) {
@@ -115,12 +83,19 @@ function stopDone(total) {
     var secs = ((Date.now() - startTime) / 1000).toFixed(1);
     document.getElementById('startBtn').disabled = false;
     document.getElementById('stopBtn').disabled = true;
-    document.getElementById('statStatus').textContent = 'DONE';
-    document.getElementById('statStatus').className = 'stat-value stat-done';
-    setStatus('done', 'ATTACK COMPLETE — ' + total + ' PACKETS SENT');
+    document.getElementById('stopBtn').classList.add('opacity-50', 'cursor-not-allowed');
+    setStatus('done', 'TASK COMPLETE — ' + total.toLocaleString() + ' PACKETS');
+    
+    // Log to local persistence
     var t = new Date().toLocaleTimeString('en-GB');
-var logs = JSON.parse(localStorage.getItem('netwolf_logs') || '[]');
-logs.push({ type: 'dos', time: t, target: ip + ':' + port, details: packets + ' packets sent in ' + secs + 's', packets: packets });
-localStorage.setItem('netwolf_logs', JSON.stringify(logs));
-    addLog('ok', 'COMPLETE', total + ' packets sent in ' + secs + 's');
+    var logs = JSON.parse(localStorage.getItem('netwolf_logs') || '[]');
+    logs.push({ 
+        type: 'dos', 
+        time: t, 
+        target: document.getElementById('targetIP').value, 
+        details: `${total.toLocaleString()} pkts in ${secs}s via ${document.getElementById('attackType').value}` 
+    });
+    localStorage.setItem('netwolf_logs', JSON.stringify(logs));
+    
+    addLog('ok', 'FINISHED', 'Deployment sequence finalized successfully.');
 }

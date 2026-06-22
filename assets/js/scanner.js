@@ -62,9 +62,9 @@ async function startScan() {
     }
 
     error.classList.add('hidden');
-    body.innerHTML = '';
+    body.innerHTML = '<div class="opacity-20 animate-pulse">Initializing probe sequence...</div>';
     statusBar.classList.remove('hidden');
-    statusText.textContent = 'SCANNING ' + ip + ' — PORTS ' + start + ' TO ' + end + '...';
+    statusText.textContent = 'EXECUTING SCAN: ' + ip;
     btn.disabled = true;
 
     try {
@@ -77,18 +77,19 @@ async function startScan() {
         const data = await response.json();
 
         if (data.success && data.results) {
+            body.innerHTML = '';
             data.results.forEach(r => {
                 if (r.status === 'open') {
                     addRow(r.port, getService(r.port), r.status, 'n/a');
                 }
             });
-            statusText.textContent = 'SCAN COMPLETE — ' + (end - start + 1) + ' PORTS SCANNED';
+            statusText.textContent = 'SCAN COMPLETE — ' + data.results.length + ' OPEN PORTS';
             saveToStorage(ip, data.results);
         } else {
-            statusText.textContent = 'SCAN FAILED: ' + (data.message || 'Unknown error');
+            statusText.textContent = 'RESTRICTED: ' + (data.message || 'Access denied');
         }
     } catch (err) {
-        statusText.textContent = 'SCAN ERROR: ' + err.message;
+        statusText.textContent = 'LINK ERROR: ' + err.message;
     } finally {
         btn.disabled = false;
     }

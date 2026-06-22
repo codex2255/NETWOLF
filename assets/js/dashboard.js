@@ -1,6 +1,14 @@
-var scansRun = 24;
-var openPorts = 138;
-var vulnCount = 7;
+function updateDashboardStats() {
+    const logs = JSON.parse(localStorage.getItem('netwolf_logs') || '[]');
+    const lastScan = JSON.parse(localStorage.getItem('netwolf_last_scan') || '{"results":[]}');
+    
+    const scansCount = logs.filter(l => l.type === 'scan').length;
+    const openPortsCount = lastScan.results.filter(r => r.status === 'open').length;
+    const dosCount = logs.filter(l => l.type === 'dos').length;
+
+    countUp('scansRun', scansCount);
+    countUp('openPorts', openPortsCount);
+}
 
 function countUp(id, target) {
     var el = document.getElementById(id);
@@ -30,15 +38,30 @@ var logs = [
 ];
 
 function showLogs() {
+    const logs = JSON.parse(localStorage.getItem('netwolf_logs') || '[]');
     var container = document.getElementById('activityLog');
-    container.innerHTML = '';
-
-    for (var i = 0; i < logs.length; i++) {
-        var p = document.createElement('p');
-        p.className = 'log-line';
-        p.innerHTML = '[' + logs[i].time + '] <span class="log-' + logs[i].type + '">' + logs[i].label + '</span> — ' + logs[i].msg;
-        container.appendChild(p);
+    
+    if (logs.length === 0) {
+        container.innerHTML = '<div class="opacity-20 italic py-4">No recent activity detected.</div>';
+        return;
     }
+
+    container.innerHTML = '';
+    // Show last 10 logs
+    const recentLogs = logs.slice(-10).reverse();
+    
+    recentLogs.forEach(log => {
+        var div = document.createElement('div');
+        div.className = 'flex gap-4 py-2 border-b border-white/5 last:border-0';
+        const accent = log.type === 'scan' ? 'text-accent' : 'text-danger';
+        div.innerHTML = `
+            <span class="text-white/20 font-mono text-[10px]">${log.time}</span>
+            <span class="${accent} font-bold uppercase tracking-tighter w-12 text-[10px]">${log.type}</span>
+            <span class="text-white/60 truncate flex-1">${log.details}</span>
+        `;
+        container.appendChild(div);
+    });
 }
 
+updateDashboardStats();
 showLogs();

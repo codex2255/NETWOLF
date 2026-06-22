@@ -3,31 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NETWOLF</title>
+    <title>NETWOLF Pro — Initialize</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="assets/css/netwolf.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/pro.css">
+    <style>
+        body { background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .intro-box { text-align: center; max-width: 400px; width: 90%; }
+        .logo-big { color: var(--accent); font-size: 3rem; font-weight: 800; letter-spacing: -0.05em; margin-bottom: 0.5rem; }
+        .loader-bar { width: 100%; height: 2px; background: var(--border); border-radius: 99px; overflow: hidden; margin: 2rem 0; }
+        .loader-progress { width: 0%; height: 100%; background: var(--accent); box-shadow: 0 0 15px var(--accent); animation: load 3s ease-in-out forwards; }
+        @keyframes load { to { width: 100%; } }
+    </style>
 </head>
 <body>
 
-    <canvas id="particleCanvas"></canvas>
-
-    <div id="introScreen" class="intro-screen">
-
-        <svg id="hatSvg" viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg" class="hat-svg">
-            <path class="hat-path" d="M 20 110 Q 100 125 180 110" />
-            <path class="hat-path" d="M 20 110 Q 100 130 180 110" />
-            <path class="hat-path" d="M 55 110 Q 50 70 70 45 Q 100 25 130 45 Q 150 70 145 110" />
-            <path class="hat-path" d="M 70 45 Q 100 30 130 45" />
-            <path class="hat-path band-path" d="M 58 95 Q 100 105 142 95" />
-            <path class="hat-path" d="M 55 110 Q 35 115 20 110" />
-            <path class="hat-path" d="M 145 110 Q 165 115 180 110" />
-        </svg>
-
-        <div id="netwolfText" class="intro-text">NETWOLF</div>
-        <div id="subText" class="intro-subtext">INITIALIZING SYSTEM...</div>
-
+    <div class="intro-box animate-fade">
+        <div class="logo-big">NETWOLF <small class="text-sm opacity-50 font-mono tracking-tighter">PRO</small></div>
+        <p class="text-dim text-xs font-mono uppercase tracking-[0.3em]">Advanced Network Auditing Suite</p>
+        
+        <div class="loader-bar">
+            <div class="loader-progress"></div>
+        </div>
+        
+        <div id="status" class="text-[10px] font-mono text-accent/60 uppercase tracking-widest">Initialising Core Modules...</div>
     </div>
 
-    <script src="assets/js/netwolf.js"></script>
+    <script>
+        const statuses = [
+            "Authenticating Session...",
+            "Mapping local interfaces...",
+            "Verifying backend connectivity...",
+            "Loading auditing engine...",
+            "System Ready."
+        ];
+        let i = 0;
+        const el = document.getElementById('status');
+        const interval = setInterval(() => {
+            if (i < statuses.length) {
+                el.textContent = statuses[i++];
+            } else {
+                clearInterval(interval);
+                setTimeout(() => {
+                    window.location.href = 'pages/dashboard.html';
+                }, 500);
+            }
+        }, 600);
+    </script>
 </body>
 </html>
