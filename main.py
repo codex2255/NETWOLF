@@ -58,9 +58,20 @@ class NetWolf:
 
     def run_cli(self):
         while self.running:
-            print("\n[ NETWOLF CLI ]")
-            print("1. Discovery | 2. Port Scan | 3. Service Detect | 4. OS Detect | 5. DoS Suite | 8. Web GUI | 9. Exit")
-            choice = input("> ")
+            print("\n" + "="*60)
+            print("                NETWOLF v1.0 - CORE MODULES                ")
+            print("="*60)
+            print("1. [NETWORK DISCOVERY]  - Map local topology and active nodes.")
+            print("2. [PORT SCANNER]       - Identify open sockets and protocols.")
+            print("3. [SERVICE DETECTION]  - Grab banners and identify host services.")
+            print("4. [OS FINGERPRINTING]  - Analyze TCP/IP stack to detect remote OS.")
+            print("5. [DOS ATTACK SUITE]   - Network load generation and stress testing.")
+            print("-" * 60)
+            print("8. [START WEB GUI]      - Professional browser-based interface.")
+            print("9. [EXIT SYSTEM]        - Safely terminate core threads.")
+            print("="*60)
+            
+            choice = input("\nSelect Module > ")
             if choice == '1': self.network_discovery_menu()
             elif choice == '2': self.port_scanner_menu()
             elif choice == '3': self.service_detection_menu()
@@ -70,9 +81,19 @@ class NetWolf:
             elif choice == '9': self.running = False
 
     def network_discovery_menu(self):
-        print("\n[ NETWORK DISCOVERY ]")
-        print("1. Auto | 2. Manual | 3. Ping | 4. ARP | 5. Router | 6. Interfaces | 7. Smart")
-        c = input("> ")
+        print("\n" + "-"*60)
+        print("                MODULE: NETWORK DISCOVERY                  ")
+        print("-"*60)
+        print("Identify active devices on your segment using multiple vectors.")
+        print("\n1. AUTO-SCAN   - Automatically map the current local network.")
+        print("2. MANUAL CIDR - Map a custom range (e.g. 192.168.1.0/24).")
+        print("3. PING SWEEP  - Fast ICMP echo requests for basic discovery.")
+        print("4. ARP SCAN    - Layer 2 mapping using ARP protocol (most accurate).")
+        print("5. ROUTER PROBE- Discover and map the gateway's segment.")
+        print("6. INTERFACES  - Cross-scan all identified local interfaces.")
+        print("7. SMART SCAN  - Heuristic analysis to find high-value targets.")
+        
+        c = input("\nSelect Method > ")
         net = self.get_network_range() if c == '1' else input("Range: ")
         results = []
         if c == '1': results = network_discovery(net, enhanced=True)
@@ -99,13 +120,18 @@ class NetWolf:
         return f"{'.'.join(l_ip.split('.')[:3])}.0/24"
 
     def port_scanner_menu(self):
-        t = input("Target IP: ")
+        print("\n" + "-"*60)
+        print("                MODULE: PORT SCANNER                      ")
+        print("-"*60)
+        print("Map open ports using multi-threaded TCP Connect probes.")
+        
+        t = input("\nTarget Host Address > ")
         if not is_target_allowed(t):
-            print("[-] Restricted to local network.")
+            print("[-] Access Restricted: Target must be in local network.")
             return
-        s = int(input("Start Port: "))
-        e = int(input("End Port: "))
-        print(f"[*] Scanning {t}...")
+        s = int(input("Probe Range Start  > "))
+        e = int(input("Probe Range End    > "))
+        print(f"[*] Initializing scan on {t}...")
         results = port_scan(t, s, e)
         print("\nPORT       PROTOCOL   SERVICE")
         print("-" * 30)
@@ -114,27 +140,52 @@ class NetWolf:
                 print(f"{r['port']:<10} {r['protocol']:<10} {r.get('service','unknown')}")
 
     def service_detection_menu(self):
-        t = input("Target IP: ")
+        print("\n" + "-"*60)
+        print("                MODULE: SERVICE DETECTION                  ")
+        print("-"*60)
+        print("Interrogate open sockets to capture application banners.")
+        
+        t = input("\nTarget Host Address > ")
         if not is_target_allowed(t):
-            print("[-] Restricted to local network.")
+            print("[-] Access Restricted: Target must be in local network.")
             return
-        p = input("Ports (comma): ")
+        p = input("Ports to Probe (CSV)> ")
         results = service_detection(t, [int(x) for x in p.split(',')])
         for r in results:
             print(f"Port {r['port']}: {r['service']} | Banner: {r.get('banner','N/A')}")
 
     def os_fingerprint_menu(self):
-        t = input("Target IP: ")
+        print("\n" + "-"*60)
+        print("                MODULE: OS FINGERPRINTING                  ")
+        print("-"*60)
+        print("Heuristic analysis of TCP/IP stack (TTL/Window) to match OS.")
+        
+        t = input("\nTarget Host Address > ")
         if not is_target_allowed(t):
-            print("[-] Restricted to local network.")
+            print("[-] Access Restricted: Target must be in local network.")
             return
         res = os_fingerprint(t)
-        print(f"Detected OS: {res['os']} (TTL: {res['ttl']})")
+        print(f"[*] Fingerprint analysis complete.")
+        print(f"\nDETECTION: {res['os']}")
+        print(f"RAW TTL:   {res['ttl']}")
 
     def attack_menu(self):
-        print("\n[ DOS SUITE ]")
-        print("1. UDP | 2. SYN | 3. ICMP | 4. HTTP | 5. Smurf | 6. Network | 7. Broadcast | 8. DNS")
-        c = input("> ")
+        print("\n" + "!"*60)
+        print("                MODULE: DoS STRESS TOOLKIT                  ")
+        print("!"*60)
+        print("Generate high-volume network load for authorized testing.")
+        print("\n--- SINGLE TARGET VECTORS ---")
+        print("1. UDP FLOOD      - High-volume stateless packet storm.")
+        print("2. TCP SYN FLOOD  - Overwhelm connection tables via SYNs.")
+        print("3. ICMP ECHO      - Saturate bandwidth with ping requests.")
+        print("4. HTTP L7 FLOOD  - Rapid application-layer GET/POST requests.")
+        print("\n--- NETWORK & AMPLIFICATION VECTORS ---")
+        print("5. SMURF ATTACK   - Amplified ICMP flood via broadcast.")
+        print("6. NETWORK UDP    - Parallel UDP flood across the entire subnet.")
+        print("7. BROADCAST      - Trigger responses from every host on segment.")
+        print("8. DNS REFLECTION - Reflection attack using public resolvers.")
+        
+        c = input("\nSelect Vector > ")
         t = input("Target: ")
         if c in ['6', '7']:
             if not is_range_allowed(t):
