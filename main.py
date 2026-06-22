@@ -6,6 +6,7 @@ import os
 from datetime import datetime
 from flask import Flask, request, jsonify, send_from_directory, send_file
 from flask_cors import CORS
+import ipaddress
 
 from utils.attack import udp_flood, tcp_flood, icmp_flood, http_flood, smurf_attack, network_wide_udp_flood, broadcast_udp_flood, dns_amplification_attack
 from utils.scanner import port_scan, service_detection, os_fingerprint
@@ -113,6 +114,9 @@ class NetWolf:
         elif choice == '2':
             raw_input = input("Enter network range (e.g., 192.168.1.0/24 or 192.168.1.1): ")
             network = self.normalize_network_range(raw_input)
+            if not is_range_allowed(network):
+                print("[-] Error: Range outside local network (Restricted)")
+                return
             print(f"[*] Normalized to: {network}")
             results = network_discovery(network, enhanced=True)
         elif choice == '3':
@@ -198,6 +202,9 @@ class NetWolf:
     
     def port_scanner_menu(self):
         target = input("Target IP: ")
+        if not is_target_allowed(target):
+            print("[-] Error: Target outside local network (Restricted)")
+            return
         start_port = int(input("Start port (1-65535): "))
         end_port = int(input("End port: "))
         scan_udp = input("Scan UDP ports as well? (y/n): ").lower() == 'y'
@@ -221,6 +228,9 @@ class NetWolf:
     
     def service_detection_menu(self):
         target = input("Target IP: ")
+        if not is_target_allowed(target):
+            print("[-] Error: Target outside local network (Restricted)")
+            return
         ports = input("Ports to check (comma separated): ")
         port_list = [int(p.strip()) for p in ports.split(',')]
         results = service_detection(target, port_list)
@@ -233,6 +243,9 @@ class NetWolf:
     
     def os_fingerprint_menu(self):
         target = input("Target IP: ")
+        if not is_target_allowed(target):
+            print("[-] Error: Target outside local network (Restricted)")
+            return
         results = os_fingerprint(target)
         print(f"\n[ OS Fingerprint Results ]")
         print(f"  Target: {target}")
@@ -259,6 +272,9 @@ class NetWolf:
             return
         
         target_ip = input("Target IP: ")
+        if not is_target_allowed(target_ip):
+            print("[-] Error: Target outside local network (Restricted)")
+            return
         target_port = input("Target port (if needed): ")
         target_port = int(target_port) if target_port else 80
         duration = int(input("Attack duration (seconds): "))
@@ -331,6 +347,9 @@ def api_scan():
     if not ip or start is None or end is None:
         return jsonify({'success': False, 'message': 'Missing fields'}), 400
     
+    if not is_target_allowed(ip):
+        return jsonify({'success': False, 'message': 'Target IP outside local network range (Restricted)'}), 403
+        
     results = port_scan(ip, int(start), int(end))
     return jsonify({'success': True, 'results': results})
 
@@ -341,6 +360,9 @@ def api_discovery():
     if not range_input:
         return jsonify({'success': False, 'message': 'Missing range'}), 400
     
+    if not is_range_allowed(range_input):
+        return jsonify({'success': False, 'message': 'Network range outside local network (Restricted)'}), 403
+        
     # Use network_discovery from utils
     results = network_discovery(range_input, enhanced=True)
     return jsonify({'success': True, 'results': results})
@@ -363,6 +385,9 @@ def api_os_detect():
     if not ip:
         return jsonify({'success': False, 'message': 'Missing IP'}), 400
     
+    if not is_target_allowed(ip):
+        return jsonify({'success': False, 'message': 'Target IP outside local network range (Restricted)'}), 403
+        
     results = os_fingerprint(ip)
     return jsonify({
         'success': True, 
@@ -378,6 +403,9 @@ def api_service_detect():
     if not ip or not ports:
         return jsonify({'success': False, 'message': 'Missing IP or ports'}), 400
     
+    if not is_target_allowed(ip):
+        return jsonify({'success': False, 'message': 'Target IP outside local network range (Restricted)'}), 403
+        
     results = service_detection(ip, ports)
     return jsonify({'success': True, 'results': results})
 
@@ -392,6 +420,9 @@ def api_dos():
     
     if not ip:
         return jsonify({'success': False, 'message': 'Missing target IP'}), 400
+
+    if not is_target_allowed(ip):
+        return jsonify({'success': False, 'message': 'Target IP outside local network range (Restricted)'}), 403
 
     # Execute attack based on type
     # Note: Using simplified duration/packet logic to bridge frontend and backend
@@ -410,6 +441,66 @@ def api_dos():
     thread.start()
     
     return jsonify({'success': True, 'message': f'Attack {attack_type} started on {ip}'})
+
+def is_target_allowed(target):
+    """
+    Restricts targets to the local network only.
+    """
+    try:
+        # Get local IP and network
+        hostname = socket.gethostname()
+        local_ip = socket.gethostbyname(hostname)
+        
+        # If localhost, allow it for testing but ideally we want the LAN
+        if local_ip == '127.0.0.1':
+            # Try to get the actual LAN IP if possible
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            try:
+                # doesn't even have to be reachable
+                s.connect(('8.8.8.8', 1))
+                local_ip = s.getsockname()[0]
+            except Exception:
+                pass
+            finally:
+                s.close()
+        
+        target_addr = ipaddress.ip_address(target)
+        
+        # Allow localhost
+        if target_addr.is_loopback:
+            return True
+            
+        # Define local network (assuming /24 for simplicity, or we could detect mask)
+        local_net = ipaddress.ip_network(f"{'.'.join(local_ip.split('.')[:3])}.0/24", strict=False)
+        
+        return target_addr in local_net
+    except Exception:
+        return False
+
+def is_range_allowed(range_str):
+    """
+    Validates if a CIDR range is within the local network.
+    """
+    try:
+        # Get local IP and network
+        hostname = socket.gethostname()
+        local_ip = socket.gethostbyname(hostname)
+        
+        if local_ip == '127.0.0.1':
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            try:
+                s.connect(('8.8.8.8', 1))
+                local_ip = s.getsockname()[0]
+            except Exception: pass
+            finally: s.close()
+
+        local_net = ipaddress.ip_network(f"{'.'.join(local_ip.split('.')[:3])}.0/24", strict=False)
+        target_net = ipaddress.ip_network(range_str, strict=False)
+        
+        # Check if target network is a subnetwork of or same as local network
+        return local_net.overlaps(target_net)
+    except Exception:
+        return False
 
 def start_web_server():
     app.run(debug=False, port=5555, host='0.0.0.0')
