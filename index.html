@@ -10,34 +10,34 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/pro.css">
     <style>
-        body { background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .intro-box { text-align: center; max-width: 400px; width: 90%; }
-        .logo-big { color: var(--accent); font-size: 3rem; font-weight: 800; letter-spacing: -0.05em; margin-bottom: 0.5rem; }
-        .loader-bar { width: 100%; height: 2px; background: var(--border); border-radius: 99px; overflow: hidden; margin: 2rem 0; }
-        .loader-progress { width: 0%; height: 100%; background: var(--accent); box-shadow: 0 0 15px var(--accent); animation: load 3s ease-in-out forwards; }
+        body { background: #020617; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .intro-box { text-align: center; max-width: 450px; width: 90%; }
+        .logo-big { color: var(--accent); font-size: 3.5rem; font-weight: 900; letter-spacing: -0.06em; margin-bottom: 0.5rem; text-shadow: 0 0 30px var(--accent-glow); }
+        .loader-bar { width: 100%; height: 1px; background: rgba(255,255,255,0.05); border-radius: 99px; overflow: hidden; margin: 3rem 0; }
+        .loader-progress { width: 0%; height: 100%; background: var(--accent); box-shadow: 0 0 20px var(--accent); animation: load 2.5s cubic-bezier(0.65, 0, 0.35, 1) forwards; }
         @keyframes load { to { width: 100%; } }
     </style>
 </head>
 <body>
 
-    <div class="intro-box animate-fade">
-        <div class="logo-big">NETWOLF <small class="text-sm opacity-50 font-mono tracking-tighter">PRO</small></div>
-        <p class="text-dim text-xs font-mono uppercase tracking-[0.3em]">Advanced Network Auditing Suite</p>
+    <div class="intro-box animate-in">
+        <div class="logo-big">NETWOLF <small class="text-sm opacity-40 font-mono tracking-tighter italic">PRO</small></div>
+        <p class="text-text-dim text-[10px] font-bold uppercase tracking-[0.4em] opacity-50">Industrial Network Auditor</p>
         
         <div class="loader-bar">
             <div class="loader-progress"></div>
         </div>
         
-        <div id="status" class="text-[10px] font-mono text-accent/60 uppercase tracking-widest">Initialising Core Modules...</div>
+        <div id="status" class="text-[10px] font-mono text-accent uppercase tracking-widest opacity-80">Syncing Kernel Modules...</div>
     </div>
 
     <script>
         const statuses = [
-            "Authenticating Session...",
-            "Mapping local interfaces...",
-            "Verifying backend connectivity...",
-            "Loading auditing engine...",
-            "System Ready."
+            "Initializing secure link...",
+            "Mapping network fabric...",
+            "Verifying backend handshake...",
+            "Loading auditing suite...",
+            "Handshake ESTABLISHED."
         ];
         let i = 0;
         const el = document.getElementById('status');
@@ -48,9 +48,9 @@
                 clearInterval(interval);
                 setTimeout(() => {
                     window.location.href = 'pages/dashboard.html';
-                }, 500);
+                }, 400);
             }
-        }, 600);
+        }, 500);
     </script>
 </body>
 </html>

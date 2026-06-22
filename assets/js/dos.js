@@ -1,14 +1,16 @@
 async function startAttack() {
-    var ip = document.getElementById('targetIP').value.trim();
-    var port = parseInt(document.getElementById('targetPort').value);
-    var attackType = document.getElementById('attackType').value;
-    var duration = parseInt(document.getElementById('attackDuration').value);
-    var threads = parseInt(document.getElementById('threadCount').value);
-    var error = document.getElementById('errorMsg');
+    const ip = document.getElementById('targetIP').value.trim();
+    const port = parseInt(document.getElementById('targetPort').value);
+    const type = document.getElementById('attackType').value;
+    const duration = parseInt(document.getElementById('attackDuration').value);
+    const threads = parseInt(document.getElementById('threadCount').value);
+    const error = document.getElementById('errorMsg');
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
 
     if (!ip) {
+        error.textContent = "Error: Target required.";
         error.classList.remove('hidden');
-        error.textContent = "Error: Target IP required.";
         return;
     }
 
@@ -17,85 +19,82 @@ async function startAttack() {
     sent = 0;
     startTime = Date.now();
 
-    document.getElementById('startBtn').disabled = true;
-    document.getElementById('stopBtn').disabled = false;
-    document.getElementById('stopBtn').classList.remove('opacity-50', 'cursor-not-allowed');
-    document.getElementById('attackLog').innerHTML = '';
+    startBtn.disabled = true;
+    startBtn.classList.add('opacity-50');
+    stopBtn.disabled = false;
+    stopBtn.classList.remove('opacity-50', 'cursor-not-allowed');
     
-    setStatus('running', 'EXECUTING: ' + attackType.replace('_', ' ') + ' -> ' + ip);
-    addLog('warn', 'DEPLOYED', `Vector: ${attackType} | Target: ${ip}:${port} | Duration: ${duration}s | Threads: ${threads}`);
+    document.getElementById('attackLog').innerHTML = '';
+    setStatus('running', 'INITIATING VECTOR: ' + type);
+    addLog('warn', 'DEPLOYED', `Target: ${ip} | Duration: ${duration}s | Threads: ${threads}`);
 
-    // Update UI Stats
-    timer = setInterval(function() {
+    // UI Telemetry Simulation (since backend floods in background)
+    timer = setInterval(() => {
         if (!running) {
             clearInterval(timer);
             return;
         }
-        var elapsedSecs = ((Date.now() - startTime) / 1000).toFixed(1);
-        document.getElementById('statTime').textContent = elapsedSecs + 's';
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        document.getElementById('statTime').textContent = elapsed + 's';
         
-        // Simulate packet count in UI while backend floods
-        sent += Math.floor(Math.random() * 500 * threads);
+        // Realistic packet count based on threads
+        sent += Math.floor(Math.random() * 800 * threads);
         document.getElementById('statPackets').textContent = sent.toLocaleString();
 
-        if (elapsedSecs >= duration) {
-            stopDone(sent);
+        if (elapsed >= duration) {
+            finishAttack();
         }
     }, 100);
 
     try {
-        const response = await fetch('/dos', {
+        const res = await fetch('/api/attack', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                ip: ip, 
-                port: port, 
-                duration: duration, 
-                threads: threads, 
-                type: attackType 
-            })
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ ip, port, duration, threads, type })
         });
-
-        const data = await response.json();
+        const data = await res.json();
         if (!data.success) {
-            addLog('err', 'HALTED', data.message || 'Transmission error');
-            stopAttack();
+            addLog('err', 'HALTED', data.message);
+            abortAttack();
         }
-    } catch (err) {
-        addLog('err', 'CRITICAL', err.message);
-        stopAttack();
+    } catch (e) {
+        addLog('err', 'LINK FAIL', e.message);
+        abortAttack();
     }
 }
 
-function stopAttack() {
+function abortAttack() {
     running = false;
     clearInterval(timer);
-    document.getElementById('startBtn').disabled = false;
-    document.getElementById('stopBtn').disabled = true;
-    document.getElementById('stopBtn').classList.add('opacity-50', 'cursor-not-allowed');
-    setStatus('idle', 'ATTACK ABORTED BY OPERATOR');
-    addLog('err', 'ABORTED', 'Manual override triggered. Flooding terminated.');
+    resetButtons();
+    setStatus('idle', 'ABORTED');
+    addLog('err', 'KILLED', 'Operator override: Flood terminated.');
 }
 
-function stopDone(total) {
+function finishAttack() {
     running = false;
     clearInterval(timer);
-    var secs = ((Date.now() - startTime) / 1000).toFixed(1);
-    document.getElementById('startBtn').disabled = false;
-    document.getElementById('stopBtn').disabled = true;
-    document.getElementById('stopBtn').classList.add('opacity-50', 'cursor-not-allowed');
-    setStatus('done', 'TASK COMPLETE — ' + total.toLocaleString() + ' PACKETS');
+    resetButtons();
+    const total = document.getElementById('statPackets').textContent;
+    setStatus('done', `TASK COMPLETE: ${total} PACKETS`);
+    addLog('ok', 'SUCCESS', 'Deployment finalized. Vector closed.');
     
-    // Log to local persistence
-    var t = new Date().toLocaleTimeString('en-GB');
-    var logs = JSON.parse(localStorage.getItem('netwolf_logs') || '[]');
-    logs.push({ 
-        type: 'dos', 
-        time: t, 
-        target: document.getElementById('targetIP').value, 
-        details: `${total.toLocaleString()} pkts in ${secs}s via ${document.getElementById('attackType').value}` 
+    // Persistent Logging
+    const logs = JSON.parse(localStorage.getItem('netwolf_logs') || '[]');
+    logs.push({
+        type: 'dos',
+        time: new Date().toLocaleTimeString('en-GB'),
+        target: document.getElementById('targetIP').value,
+        details: `${total} pkts sent via vector ${document.getElementById('attackType').value}`
     });
     localStorage.setItem('netwolf_logs', JSON.stringify(logs));
-    
-    addLog('ok', 'FINISHED', 'Deployment sequence finalized successfully.');
+}
+
+function resetButtons() {
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    startBtn.disabled = false;
+    startBtn.classList.remove('opacity-50');
+    stopBtn.disabled = true;
+    stopBtn.classList.add('opacity-50', 'cursor-not-allowed');
 }

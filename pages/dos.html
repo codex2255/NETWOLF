@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NETWOLF Pro — DoS Stress Module</title>
+    <title>NETWOLF Pro — DoS Stress Suite</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,122 +12,129 @@
 </head>
 <body>
 
-    <div class="app-container">
-        <aside class="sidebar">
-            <div class="logo">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                <span>NETWOLF <small class="opacity-50 text-[10px] uppercase tracking-widest font-mono">Pro</small></span>
+    <div class="app-shell">
+        <aside class="side-nav">
+            <div class="mb-10 flex items-center gap-3 px-2">
+                <div class="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#020617" stroke-width="3"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                </div>
+                <span class="font-extrabold text-lg tracking-tighter italic text-white">NETWOLF <small class="text-[9px] font-mono not-italic opacity-40 uppercase tracking-widest">v1.0</small></span>
             </div>
-            <nav class="flex-1">
-                <a href="dashboard.html" class="nav-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> Dashboard</a>
-                <a href="discovery.html" class="nav-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg> Network Discovery</a>
-                <a href="scanner.html" class="nav-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> Port Scanner</a>
-                <a href="os_detect.html" class="nav-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> OS / Services</a>
-                <a href="dos.html" class="nav-link active"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> DoS Module</a>
+            
+            <nav class="flex-1 space-y-1">
+                <a href="dashboard.html" class="nav-item">Dashboard</a>
+                <a href="discovery.html" class="nav-item">Discovery</a>
+                <a href="scanner.html" class="nav-item">Port Scanner</a>
+                <a href="os_detect.html" class="nav-item">OS / Services</a>
+                <a href="dos.html" class="nav-item active !bg-danger !text-white shadow-lg shadow-danger/20">DoS Module</a>
             </nav>
-            <div class="mt-auto pt-6 border-t border-white/5">
-                <a href="settings.html" class="nav-link">Settings</a>
+
+            <div class="mt-auto pt-4 border-t border-white/5 space-y-1">
+                <a href="logs.html" class="nav-item !py-2 opacity-60">System Logs</a>
+                <a href="settings.html" class="nav-item !py-2 opacity-60">Environment</a>
             </div>
         </aside>
 
-        <main class="main-content">
-            <header class="header-bar">
-                <h1 class="page-title text-danger">Denial-of-Service Suite</h1>
+        <main class="main-view">
+            <header class="flex justify-between items-center mb-10">
+                <div>
+                    <h1 class="text-3xl font-black tracking-tighter text-white mb-1">DoS Stress Suite</h1>
+                    <p class="text-text-dim text-sm font-medium opacity-60 italic">Industrial-grade network load generation.</p>
+                </div>
                 <div class="status-badge border-danger/20 text-danger bg-danger/5">
-                    <div class="status-dot bg-danger shadow-[0_0_10px_#ff3e3e]"></div>
-                    Stress-Test Mode
+                    <div class="status-dot bg-danger shadow-[0_0_10px_#f43f5e]"></div>
+                    Operational
                 </div>
             </header>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- Advanced Attack Config -->
+                <!-- Parameters -->
                 <div class="lg:col-span-1 space-y-6">
-                    <div class="pro-card animate-fade border-danger/10 shadow-[0_10px_40px_rgba(255,62,62,0.05)]">
-                        <h2 class="text-xs font-bold uppercase tracking-widest mb-6 opacity-60">Flood Parameters</h2>
+                    <div class="card-pro animate-in border-danger/10 shadow-[0_20px_50px_rgba(244,63,94,0.05)]">
+                        <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-danger mb-6">Flood Parameters</h3>
                         <div class="space-y-5">
                             <div>
-                                <label class="text-[10px] font-mono uppercase text-dim block mb-2">Target Host / IP</label>
-                                <input type="text" id="targetIP" placeholder="192.168.1.1" class="pro-input border-danger/10 focus:border-danger !bg-bg-primary">
+                                <label class="text-[10px] font-bold uppercase text-text-dim mb-2 block tracking-widest">Target Endpoint</label>
+                                <input type="text" id="targetIP" placeholder="192.168.1.1" class="input-pro text-xs border-danger/10 focus:border-danger">
                             </div>
                             <div>
-                                <label class="text-[10px] font-mono uppercase text-dim block mb-2">Target Port</label>
-                                <input type="number" id="targetPort" value="80" class="pro-input border-danger/10 focus:border-danger !bg-bg-primary">
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-mono uppercase text-dim block mb-2">Attack Vector</label>
-                                <select id="attackType" class="pro-input border-danger/10 focus:border-danger bg-bg-secondary cursor-pointer">
-                                    <optgroup label="Single Target">
-                                        <option value="UDP_FLOOD">UDP Flood (Aggressive)</option>
-                                        <option value="TCP_SYN">TCP SYN (Handshake)</option>
-                                        <option value="HTTP_FLOOD">HTTP GET/POST Flood</option>
-                                        <option value="ICMP_FLOOD">ICMP Echo Flood</option>
+                                <label class="text-[10px] font-bold uppercase text-text-dim mb-2 block tracking-widest">Vector Method</label>
+                                <select id="attackType" class="input-pro bg-bg-dark text-xs border-danger/10 focus:border-danger cursor-pointer">
+                                    <optgroup label="Direct Handshakes">
+                                        <option value="1">UDP Aggressive Flood</option>
+                                        <option value="2">TCP SYN (Handshake)</option>
+                                        <option value="3">ICMP Echo Request</option>
+                                        <option value="4">HTTP L7 GET Flood</option>
                                     </optgroup>
-                                    <optgroup label="Network-Wide (High Impact)">
-                                        <option value="SMURF">Smurf Amplification</option>
-                                        <option value="DNS_AMP">DNS Reflection</option>
-                                        <option value="NETWORK_UDP">Network-Wide Flood</option>
-                                        <option value="BROADCAST">Subnet Broadcast Flood</option>
+                                    <optgroup label="Distributed/Reflection">
+                                        <option value="5">Smurf ICMP Amp</option>
+                                        <option value="8">DNS Resolver Reflection</option>
+                                        <option value="6">Segment-Wide Flood</option>
+                                        <option value="7">Broadcast Multiplier</option>
                                     </optgroup>
                                 </select>
                             </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="text-[10px] font-mono uppercase text-dim block mb-2">Duration (s)</label>
-                                    <input type="number" id="attackDuration" value="30" class="pro-input border-danger/10 focus:border-danger !bg-bg-primary">
+                            <div class="grid grid-cols-3 gap-3">
+                                <div class="col-span-1">
+                                    <label class="text-[9px] font-bold uppercase text-text-dim mb-2 block">Port</label>
+                                    <input type="number" id="targetPort" value="80" class="input-pro text-xs !px-2">
                                 </div>
-                                <div>
-                                    <label class="text-[10px] font-mono uppercase text-dim block mb-2">Threads</label>
-                                    <input type="number" id="threadCount" value="20" min="1" max="100" class="pro-input border-danger/10 focus:border-danger !bg-bg-primary">
+                                <div class="col-span-1">
+                                    <label class="text-[9px] font-bold uppercase text-text-dim mb-2 block">Duration</label>
+                                    <input type="number" id="attackDuration" value="30" class="input-pro text-xs !px-2">
+                                </div>
+                                <div class="col-span-1">
+                                    <label class="text-[9px] font-bold uppercase text-text-dim mb-2 block">Threads</label>
+                                    <input type="number" id="threadCount" value="20" class="input-pro text-xs !px-2">
                                 </div>
                             </div>
                             <div class="pt-4 flex flex-col gap-3">
-                                <button id="startBtn" onclick="startAttack()" class="pro-btn bg-danger text-white w-full shadow-[0_0_20px_rgba(255,62,62,0.3)] hover:shadow-[0_0_30px_rgba(255,62,62,0.4)] transition-all uppercase tracking-widest font-black text-xs py-4">Initialize Flood</button>
-                                <button id="stopBtn" onclick="stopAttack()" disabled class="pro-btn bg-white/5 text-white w-full border border-white/10 opacity-50 cursor-not-allowed text-xs uppercase tracking-widest">Emergency Abort</button>
+                                <button id="startBtn" onclick="startAttack()" class="btn-pro btn-danger-pro w-full py-4 text-xs font-black shadow-xl shadow-danger/20 tracking-[0.2em]">Deploy Vector</button>
+                                <button id="stopBtn" onclick="abortAttack()" disabled class="btn-pro bg-white/5 text-white w-full border border-white/10 opacity-50 cursor-not-allowed text-xs font-black tracking-widest">Emergency Kill</button>
                             </div>
                         </div>
-                        <p id="errorMsg" class="text-danger text-[10px] font-mono mt-4 hidden text-center bg-danger/10 py-2 rounded">Error: Deployment failed.</p>
+                        <p id="errorMsg" class="text-danger text-[10px] font-mono mt-4 hidden bg-danger/10 p-3 rounded-lg text-center uppercase tracking-tighter">System Error</p>
                     </div>
 
-                    <div class="pro-card border-white/5 p-5">
-                        <h3 class="text-[10px] font-bold uppercase tracking-widest text-dim mb-4 flex items-center gap-2">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                            Safety Protocols
-                        </h3>
-                        <p class="text-[10px] text-dim leading-relaxed font-medium italic">All flood tasks are internally monitored and will auto-terminate after the duration expires. Use the Abort key for instant packet drop.</p>
+                    <div class="card-pro bg-white/[0.01] border-white/5 p-6 animate-in" style="animation-delay: 0.1s">
+                        <h4 class="text-[10px] font-black uppercase text-text-dim mb-4 tracking-widest flex items-center gap-2">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            Engagement Logic
+                        </h4>
+                        <p class="text-[11px] text-text-dim/60 leading-relaxed">Flood tasks run as detached kernel threads. Real-time telemetry is simulated based on thread-load while the backend manages line-rate flooding.</p>
                     </div>
                 </div>
 
                 <!-- Stats & Console -->
                 <div class="lg:col-span-2 space-y-6">
                     <div class="grid grid-cols-3 gap-6">
-                        <div class="pro-card border-white/5 py-6 text-center group hover:border-danger/20 transition-all">
-                            <p class="text-[10px] font-mono uppercase text-dim mb-2 tracking-[0.2em]">Packets Sent</p>
-                            <span id="statPackets" class="text-3xl font-bold font-mono text-white group-hover:text-danger transition-colors">0</span>
+                        <div class="card-pro border-white/5 py-8 text-center group hover:border-danger/20 transition-all animate-in" style="animation-delay: 0.2s">
+                            <p class="text-[10px] font-bold uppercase text-text-dim mb-3 tracking-[0.2em]">Packets Dispatched</p>
+                            <span id="statPackets" class="text-4xl font-black stat-value text-white group-hover:text-danger transition-colors">0</span>
                         </div>
-                        <div class="pro-card border-white/5 py-6 text-center group hover:border-danger/20 transition-all">
-                            <p class="text-[10px] font-mono uppercase text-dim mb-2 tracking-[0.2em]">Active Time</p>
-                            <span id="statTime" class="text-3xl font-bold font-mono text-white">0s</span>
+                        <div class="card-pro border-white/5 py-8 text-center group hover:border-danger/20 transition-all animate-in" style="animation-delay: 0.3s">
+                            <p class="text-[10px] font-bold uppercase text-text-dim mb-3 tracking-[0.2em]">Active Uptime</p>
+                            <span id="statTime" class="text-4xl font-black stat-value text-white">0s</span>
                         </div>
-                        <div class="pro-card border-white/5 py-6 text-center">
-                            <p class="text-[10px] font-mono uppercase text-dim mb-2 tracking-[0.2em]">Deployment</p>
-                            <span id="statStatus" class="text-[11px] font-black font-mono text-dim tracking-widest border border-white/10 px-3 py-1 rounded">IDLE</span>
-                        </div>
-                    </div>
-
-                    <div class="pro-card flex flex-col h-[450px] relative overflow-hidden">
-                        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-danger/20 to-transparent"></div>
-                        <h2 class="text-xs font-bold uppercase tracking-widest mb-6 opacity-60">Flood Kernel Console</h2>
-                        <div id="attackLog" class="terminal flex-1 overflow-y-auto !text-danger/70 !bg-transparent !border-none !p-0">
-                            <div class="opacity-20 font-mono italic">Awaiting secure deployment command...</div>
+                        <div class="card-pro border-white/5 py-8 text-center animate-in" style="animation-delay: 0.4s">
+                            <p class="text-[10px] font-bold uppercase text-text-dim mb-3 tracking-[0.2em]">State</p>
+                            <span id="statStatus" class="text-[11px] font-black font-mono text-dim tracking-widest bg-white/5 px-4 py-1.5 rounded-full">IDLE</span>
                         </div>
                     </div>
 
-                    <div id="statusBar" class="flex items-center justify-between px-4 py-3 bg-white/[0.02] border border-white/5 rounded-xl">
-                        <div class="flex items-center gap-3">
-                            <div class="status-dot-dos idle w-2 h-2 rounded-full bg-white/20"></div>
-                            <span id="statusText" class="text-[10px] font-mono uppercase tracking-[0.3em] text-dim">Ready for deployment</span>
+                    <div class="card-pro h-[450px] flex flex-col relative animate-in" style="animation-delay: 0.5s">
+                        <div class="flex justify-between items-center mb-6 opacity-30">
+                            <h3 class="text-[10px] font-black uppercase tracking-[0.3em]">Flood Kernel Buffer</h3>
+                            <span class="text-[9px] font-mono tracking-tighter">ENCRYPTED_LINK_ACTIVE</span>
                         </div>
-                        <span class="text-[10px] font-mono text-white/10 tracking-tighter">NETWOLF_PRO_DOS_KERNEL_V4</span>
+                        <div id="attackLog" class="terminal-pro flex-1 overflow-y-auto !bg-transparent !border-none !p-0 space-y-2">
+                            <div class="opacity-20 italic text-[10px] font-mono">Awaiting secure deployment sequence...</div>
+                        </div>
+                    </div>
+
+                    <div id="statusStrip" class="flex items-center gap-4 px-5 py-4 bg-white/[0.02] border border-white/5 rounded-2xl animate-in" style="animation-delay: 0.6s">
+                        <div class="status-dot-dos idle w-2.5 h-2.5 rounded-full bg-white/10"></div>
+                        <span id="statusText" class="text-[10px] font-bold font-mono uppercase tracking-[0.3em] text-text-dim">Ready for uplink</span>
                     </div>
                 </div>
             </div>
@@ -143,36 +150,35 @@
             const statText = document.getElementById('statStatus');
             
             if (state === 'running') {
-                dot.className = 'status-dot-dos w-2 h-2 rounded-full bg-danger shadow-[0_0_12px_#ff3e3e] animate-pulse';
-                text.className = 'text-[10px] font-mono uppercase tracking-[0.3em] text-danger font-bold';
-                statText.textContent = 'EXECUTING';
-                statText.className = 'text-[11px] font-black font-mono text-danger tracking-widest border border-danger/30 px-3 py-1 rounded bg-danger/5';
+                dot.className = 'status-dot-dos w-2.5 h-2.5 rounded-full bg-danger shadow-[0_0_15px_#f43f5e] animate-pulse';
+                text.className = 'text-[10px] font-black font-mono uppercase tracking-[0.3em] text-danger';
+                statText.textContent = 'DEPLOYED';
+                statText.className = 'text-[11px] font-black font-mono text-danger tracking-widest bg-danger/10 px-4 py-1.5 rounded-full border border-danger/20';
             } else if (state === 'done') {
-                dot.className = 'status-dot-dos w-2 h-2 rounded-full bg-accent shadow-[0_0_12px_#00ffa3]';
-                text.className = 'text-[10px] font-mono uppercase tracking-[0.3em] text-accent';
-                statText.textContent = 'COMPLETE';
-                statText.className = 'text-[11px] font-black font-mono text-accent tracking-widest border border-accent/30 px-3 py-1 rounded bg-accent/5';
+                dot.className = 'status-dot-dos w-2.5 h-2.5 rounded-full bg-accent shadow-[0_0_15px_#38bdf8]';
+                text.className = 'text-[10px] font-black font-mono uppercase tracking-[0.3em] text-accent';
+                statText.textContent = 'SUCCESS';
+                statText.className = 'text-[11px] font-black font-mono text-accent tracking-widest bg-accent/10 px-4 py-1.5 rounded-full border border-accent/20';
             } else {
-                dot.className = 'status-dot-dos w-2 h-2 rounded-full bg-white/20';
-                text.className = 'text-[10px] font-mono uppercase tracking-[0.3em] text-dim';
+                dot.className = 'status-dot-dos w-2.5 h-2.5 rounded-full bg-white/10';
+                text.className = 'text-[10px] font-bold font-mono uppercase tracking-[0.3em] text-text-dim';
                 statText.textContent = 'IDLE';
-                statText.className = 'text-[11px] font-black font-mono text-dim tracking-widest border border-white/10 px-3 py-1 rounded';
+                statText.className = 'text-[11px] font-black font-mono text-dim tracking-widest bg-white/5 px-4 py-1.5 rounded-full';
             }
             text.textContent = msg;
         }
 
-        const originalAddLog = addLog;
         window.addLog = function(type, label, msg) {
             var log = document.getElementById('attackLog');
             var empty = log.querySelector('.opacity-20');
             if (empty) empty.remove();
 
             var line = document.createElement('div');
-            line.className = 'mb-2 animate-fade border-l-2 border-transparent hover:border-danger/40 hover:bg-danger/[0.03] pl-2 transition-all';
+            line.className = 'animate-in border-l-2 border-transparent hover:border-danger/40 hover:bg-danger/[0.03] py-1 pl-3 transition-all flex gap-4';
             line.innerHTML = `
-                <span class="text-white/10 text-[9px] mr-3">${new Date().toLocaleTimeString('en-GB')}</span>
-                <span class="text-danger font-bold uppercase tracking-tighter mr-3 text-[10px]">${label}</span>
-                <span class="text-white/50 text-[10px] font-medium">${msg}</span>
+                <span class="text-white/10 text-[9px] font-mono w-20">${new Date().toLocaleTimeString()}</span>
+                <span class="text-danger font-black uppercase text-[10px] w-16">${label}</span>
+                <span class="text-text-dim text-[10px] font-medium flex-1">${msg}</span>
             `;
             log.appendChild(line);
             log.scrollTop = log.scrollHeight;
