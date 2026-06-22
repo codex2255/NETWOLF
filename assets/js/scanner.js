@@ -23,27 +23,29 @@ function validPorts(start, end) {
     return !isNaN(start) && !isNaN(end) && start >= 1 && end <= 65535 && start <= end;
 }
 
-function getStatus() {
-    var rand = Math.random();
-    if (rand < 0.3) return 'open';
-    if (rand < 0.8) return 'closed';
-    return 'filtered';
-}
-
-function getTime(status) {
-    if (status === 'filtered') return 'timeout';
-    return Math.floor(Math.random() * 20 + 2) + 'ms';
-}
-
-function addRow(port, service, status, time) {
+function addRow(port, service, status) {
     var body = document.getElementById('resultsBody');
     var empty = body.querySelector('.no-results');
     if (empty) empty.remove();
 
     var row = document.createElement('div');
     row.className = 'result-row';
-    row.innerHTML = '<span>' + port + '</span><span>' + service + '</span><span class="status-' + status + '">' + status.toUpperCase() + '</span><span>' + time + '</span>';
+    row.innerHTML = '<span>' + port + '</span><span>' + service + '</span><span class="status-' + status + '">' + status.toUpperCase() + '</span><span>-</span>';
     body.appendChild(row);
+}
+
+function saveToStorage(ip, results) {
+    var time = new Date().toLocaleTimeString('en-GB');
+    var scanData = { ip: ip, results: results, time: time };
+    localStorage.setItem('netwolf_last_scan', JSON.stringify(scanData));
+
+    var logs = JSON.parse(localStorage.getItem('netwolf_logs') || '[]');
+    var openCount = 0;
+    for (var i = 0; i < results.length; i++) {
+        if (results[i].status == 'open') openCount++;
+    }
+    logs.push({ type: 'scan', time: time, target: ip, details: openCount + ' open ports found' });
+    localStorage.setItem('netwolf_logs', JSON.stringify(logs));
 }
 
 function startScan() {
@@ -67,18 +69,32 @@ function startScan() {
     statusText.textContent = 'SCANNING ' + ip + ' — PORTS ' + start + ' TO ' + end + '...';
     btn.disabled = true;
 
-    var current = start;
-
-    var timer = setInterval(function() {
-        if (current > end) {
-            clearInterval(timer);
-            statusText.textContent = 'SCAN COMPLETE — ' + (end - start + 1) + ' PORTS SCANNED';
+    fetch('http://127.0.0.1:5000/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ip: ip, portStart: start, portEnd: end })
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+        if (!data.success) {
+            statusText.textContent = 'ERROR: ' + data.message;
             btn.disabled = false;
             return;
         }
-        var status = getStatus();
-        var time = getTime(status);
-        addRow(current, getService(current), status, time);
-        current++;
-    }, 80);
+
+        var results = data.results;
+        results.sort(function(a, b) { return a.port - b.port; });
+
+        for (var i = 0; i < results.length; i++) {
+            addRow(results[i].port, getService(results[i].port), results[i].status);
+        }
+
+        statusText.textContent = 'SCAN COMPLETE — ' + results.length + ' PORTS SCANNED';
+        saveToStorage(ip, results);
+        btn.disabled = false;
+    })
+    .catch(function(err) {
+        statusText.textContent = 'CONNECTION ERROR — IS FLASK RUNNING?';
+        btn.disabled = false;
+    });
 }

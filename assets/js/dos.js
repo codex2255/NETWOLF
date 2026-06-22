@@ -1,8 +1,6 @@
 var running = false;
-var timer = null;
-var elapsed = 0;
-var sent = 0;
 var startTime = null;
+var pollTimer = null;
 
 function validIP(ip) {
     var pattern = /^(\d{1,3}\.){3}\d{1,3}$/;
@@ -38,11 +36,17 @@ function setStatus(state, msg) {
     text.textContent = msg;
 }
 
+function saveDosToStorage(ip, port, packets, secs) {
+    var time = new Date().toLocaleTimeString('en-GB');
+    var logs = JSON.parse(localStorage.getItem('netwolf_logs') || '[]');
+    logs.push({ type: 'dos', time: time, target: ip + ':' + port, details: packets + ' packets sent in ' + secs + 's', packets: packets });
+    localStorage.setItem('netwolf_logs', JSON.stringify(logs));
+}
+
 function startAttack() {
     var ip = document.getElementById('targetIP').value.trim();
     var port = parseInt(document.getElementById('targetPort').value);
     var packets = parseInt(document.getElementById('packetCount').value);
-    var threads = parseInt(document.getElementById('threadCount').value) || 4;
     var error = document.getElementById('errorMsg');
 
     if (!validIP(ip) || !validPort(port) || isNaN(packets) || packets < 1) {
@@ -52,7 +56,6 @@ function startAttack() {
 
     error.classList.add('hidden');
     running = true;
-    sent = 0;
     startTime = Date.now();
 
     document.getElementById('startBtn').disabled = true;
@@ -60,54 +63,69 @@ function startAttack() {
     document.getElementById('attackLog').innerHTML = '';
     document.getElementById('statStatus').textContent = 'RUNNING';
     document.getElementById('statStatus').className = 'stat-value stat-running';
+    document.getElementById('statPackets').textContent = '0';
+    document.getElementById('statPPS').textContent = '0';
+    document.getElementById('statTime').textContent = '0s';
 
     setStatus('running', 'ATTACKING ' + ip + ':' + port);
-    addLog('warn', 'INITIATED', 'Attack started on ' + ip + ':' + port + ' — ' + packets + ' packets');
+    addLog('warn', 'INITIATED', 'Sending ' + packets + ' packets to ' + ip + ':' + port);
 
-    var batch = threads * 2;
+    pollTimer = setInterval(function() {
+        if (!running) { clearInterval(pollTimer); return; }
+        var secs = ((Date.now() - startTime) / 1000).toFixed(1);
+        document.getElementById('statTime').textContent = secs + 's';
+        addLog('warn', 'RUNNING', 'Attack in progress... ' + secs + 's elapsed');
+    }, 2000);
 
-    timer = setInterval(function() {
-        if (!running || sent >= packets) {
-            stopDone(packets);
-            return;
-        }
-
-        var remaining = packets - sent;
-        var add = Math.min(batch, remaining);
-        sent += add;
+    fetch('http://127.0.0.1:5000/dos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ip: ip, port: port, packetCount: packets })
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+        clearInterval(pollTimer);
+        running = false;
 
         var secs = ((Date.now() - startTime) / 1000).toFixed(1);
-        var pps = Math.floor(sent / (secs > 0 ? secs : 1));
 
-        document.getElementById('statPackets').textContent = sent;
-        document.getElementById('statPPS').textContent = pps;
-        document.getElementById('statTime').textContent = secs + 's';
-
-        if (sent % 200 === 0 || sent >= packets) {
-            addLog('ok', 'SENT', sent + '/' + packets + ' packets sent');
+        if (data.success) {
+            document.getElementById('statPackets').textContent = packets;
+            document.getElementById('statTime').textContent = secs + 's';
+            document.getElementById('statPPS').textContent = Math.floor(packets / (secs > 0 ? secs : 1));
+            document.getElementById('statStatus').textContent = 'DONE';
+            document.getElementById('statStatus').className = 'stat-value stat-done';
+            setStatus('done', 'ATTACK COMPLETE — ' + packets + ' PACKETS SENT');
+            addLog('ok', 'COMPLETE', packets + ' packets sent in ' + secs + 's');
+            saveDosToStorage(ip, port, packets, secs);
+        } else {
+            document.getElementById('statStatus').textContent = 'ERROR';
+            document.getElementById('statStatus').className = 'stat-value stat-done';
+            setStatus('done', 'ERROR: ' + data.message);
+            addLog('err', 'FAILED', data.message);
         }
-    }, 100);
+
+        document.getElementById('startBtn').disabled = false;
+        document.getElementById('stopBtn').disabled = true;
+    })
+    .catch(function(err) {
+        clearInterval(pollTimer);
+        running = false;
+        setStatus('done', 'CONNECTION ERROR — IS FLASK RUNNING?');
+        addLog('err', 'ERROR', 'Could not connect to backend');
+        document.getElementById('startBtn').disabled = false;
+        document.getElementById('stopBtn').disabled = true;
+        document.getElementById('statStatus').textContent = 'ERROR';
+    });
 }
 
 function stopAttack() {
     running = false;
-    clearInterval(timer);
+    clearInterval(pollTimer);
     document.getElementById('startBtn').disabled = false;
     document.getElementById('stopBtn').disabled = true;
     document.getElementById('statStatus').textContent = 'STOPPED';
     document.getElementById('statStatus').className = 'stat-value stat-done';
     setStatus('done', 'ATTACK STOPPED');
-    addLog('err', 'STOPPED', 'Attack stopped — ' + sent + ' packets sent');
-}
-
-function stopDone(total) {
-    running = false;
-    clearInterval(timer);
-    var secs = ((Date.now() - startTime) / 1000).toFixed(1);
-    document.getElementById('startBtn').disabled = false;
-    document.getElementById('stopBtn').disabled = true;
-    document.getElementById('statStatus').textContent = 'DONE';
-    document.getElementById('statStatus').className = 'stat-value stat-done';
-    setStatus('done', 'ATTACK COMPLETE — ' + total + ' PACKETS SENT');
-    addLog('ok', 'COMPLETE', total + ' packets sent in ' + secs + 's');
+    addLog('err', 'STOPPED', 'UI stopped — backend finishes current batch');
 }
