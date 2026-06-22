@@ -59,7 +59,7 @@ class NetWolf:
     def run_cli(self):
         while self.running:
             print("\n[ NETWOLF CLI ]")
-            print("1. Discovery | 2. Port Scan | 3. Service Detect | 4. OS Detect | 5. DoS | 8. Web GUI | 9. Exit")
+            print("1. Discovery | 2. Port Scan | 3. Service Detect | 4. OS Detect | 5. DoS Suite | 8. Web GUI | 9. Exit")
             choice = input("> ")
             if choice == '1': self.network_discovery_menu()
             elif choice == '2': self.port_scanner_menu()
@@ -70,21 +70,28 @@ class NetWolf:
             elif choice == '9': self.running = False
 
     def network_discovery_menu(self):
+        print("\n[ NETWORK DISCOVERY ]")
         print("1. Auto | 2. Manual | 3. Ping | 4. ARP | 5. Router | 6. Interfaces | 7. Smart")
         c = input("> ")
         net = self.get_network_range() if c == '1' else input("Range: ")
+        results = []
         if c == '1': results = network_discovery(net, enhanced=True)
         elif c == '2': results = network_discovery(net, enhanced=True)
         elif c == '3': results = ping_sweep(net)
         elif c == '4': results = arp_scan(net)
         elif c == '5': results, _ = discover_gateway_and_scan()
         elif c == '6':
-            results = []
             for iface in get_all_network_interfaces():
                 devs = ping_sweep(iface['network'])
                 if devs: results.extend(devs)
         elif c == '7': results = smart_discovery()
-        print(f"[*] Found {len(results or [])} devices.")
+        
+        if results:
+            print("\nIP Address         Device Type        OS                 MAC Address")
+            print("-" * 70)
+            for h in results:
+                print(f"{h.get('ip',''):<18} {h.get('device_type',''):<18} {h.get('os',''):<18} {h.get('mac','')}")
+        print(f"\n[*] Found {len(results or [])} devices.")
 
     def get_network_range(self):
         hostname = socket.gethostname()
@@ -92,27 +99,55 @@ class NetWolf:
         return f"{'.'.join(l_ip.split('.')[:3])}.0/24"
 
     def port_scanner_menu(self):
-        t = input("Target: ")
-        s = int(input("Start: "))
-        e = int(input("End: "))
-        port_scan(t, s, e)
+        t = input("Target IP: ")
+        if not is_target_allowed(t):
+            print("[-] Restricted to local network.")
+            return
+        s = int(input("Start Port: "))
+        e = int(input("End Port: "))
+        print(f"[*] Scanning {t}...")
+        results = port_scan(t, s, e)
+        print("\nPORT       PROTOCOL   SERVICE")
+        print("-" * 30)
+        for r in results:
+            if r['status'] == 'open':
+                print(f"{r['port']:<10} {r['protocol']:<10} {r.get('service','unknown')}")
 
     def service_detection_menu(self):
-        t = input("Target: ")
+        t = input("Target IP: ")
+        if not is_target_allowed(t):
+            print("[-] Restricted to local network.")
+            return
         p = input("Ports (comma): ")
-        service_detection(t, [int(x) for x in p.split(',')])
+        results = service_detection(t, [int(x) for x in p.split(',')])
+        for r in results:
+            print(f"Port {r['port']}: {r['service']} | Banner: {r.get('banner','N/A')}")
 
     def os_fingerprint_menu(self):
-        t = input("Target: ")
-        print(os_fingerprint(t))
+        t = input("Target IP: ")
+        if not is_target_allowed(t):
+            print("[-] Restricted to local network.")
+            return
+        res = os_fingerprint(t)
+        print(f"Detected OS: {res['os']} (TTL: {res['ttl']})")
 
     def attack_menu(self):
+        print("\n[ DOS SUITE ]")
         print("1. UDP | 2. SYN | 3. ICMP | 4. HTTP | 5. Smurf | 6. Network | 7. Broadcast | 8. DNS")
         c = input("> ")
         t = input("Target: ")
-        d = int(input("Duration: "))
+        if c in ['6', '7']:
+            if not is_range_allowed(t):
+                print("[-] Restricted to local network.")
+                return
+        else:
+            if not is_target_allowed(t):
+                print("[-] Restricted to local network.")
+                return
+        d = int(input("Duration (s): "))
         thr = int(input("Threads: "))
         p = int(input("Port: ")) if c in ['1','2','6','7'] else 80
+        print(f"[*] Initiating attack vector {c}...")
         if c == '1': udp_flood(t, p, d, thr)
         elif c == '2': tcp_flood(t, p, d, thr)
         elif c == '3': icmp_flood(t, d, thr)
@@ -121,6 +156,7 @@ class NetWolf:
         elif c == '6': network_wide_udp_flood(t, p, d, thr)
         elif c == '7': broadcast_udp_flood(t, p, d, thr)
         elif c == '8': dns_amplification_attack(t, d, thr)
+        print("[+] Attack task completed.")
 
 # --- WEB SERVER ---
 
@@ -131,21 +167,15 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 @app.route('/')
 def index(): return send_file(os.path.join(BASE_DIR, 'index.html'))
 
-@app.route('/pages/<path:filename>')
-def pages(filename): return send_from_directory(os.path.join(BASE_DIR, 'pages'), filename)
-
-@app.route('/assets/<path:filename>')
-def assets(filename): return send_from_directory(os.path.join(BASE_DIR, 'assets'), filename)
-
 @app.route('/api/health')
 def api_health(): return jsonify({'status': 'online', 'version': '1.0.4-PRO'})
 
 @app.route('/api/scan', methods=['POST'])
 def api_scan():
     data = request.json
-    ip = data.get('ip')
+    ip = data.get('target')
     if not is_target_allowed(ip): return jsonify({'success': False, 'message': 'Restricted'}), 403
-    res = port_scan(ip, int(data.get('portStart', 1)), int(data.get('portEnd', 1024)), scan_udp=data.get('scan_udp', False))
+    res = port_scan(ip, int(data.get('start', 1)), int(data.get('end', 1024)), scan_udp=data.get('udp', False))
     return jsonify({'success': True, 'results': res})
 
 @app.route('/api/discovery', methods=['POST'])
@@ -167,25 +197,22 @@ def api_discovery():
     elif m == '7': res = smart_discovery()
     return jsonify({'success': True, 'results': res or []})
 
-@app.route('/api/os_detect', methods=['POST'])
-def api_os():
-    ip = request.json.get('ip')
-    if not is_target_allowed(ip): return jsonify({'success': False, 'message': 'Restricted'}), 403
-    res = os_fingerprint(ip)
-    return jsonify({'success': True, 'os': res['os'], 'ttl': res['ttl']})
-
-@app.route('/api/service_detect', methods=['POST'])
-def api_service():
+@app.route('/api/detect', methods=['POST'])
+def api_detect():
     data = request.json
-    ip = data.get('ip')
-    if not is_target_allowed(ip): return jsonify({'success': False, 'message': 'Restricted'}), 403
-    res = service_detection(ip, [int(p) for p in data.get('ports', [])])
-    return jsonify({'success': True, 'results': res})
+    t = data.get('target')
+    if not is_target_allowed(t): return jsonify({'success': False, 'message': 'Restricted'}), 403
+    if data.get('mode') == 'os':
+        res = os_fingerprint(t)
+        return jsonify({'success': True, 'os': res['os'], 'ttl': res['ttl']})
+    else:
+        res = service_detection(t, [int(p) for p in data.get('ports', [])])
+        return jsonify({'success': True, 'results': res})
 
 @app.route('/api/attack', methods=['POST'])
 def api_dos():
     data = request.json
-    t = data.get('ip')
+    t = data.get('target')
     c = data.get('type', '1')
     d = int(data.get('duration', 10))
     thr = int(data.get('threads', 10))
@@ -194,19 +221,20 @@ def api_dos():
         if not is_range_allowed(t): return jsonify({'success': False, 'message': 'Restricted'}), 403
     else:
         if not is_target_allowed(t): return jsonify({'success': False, 'message': 'Restricted'}), 403
-    def run():
-        if c == '1': udp_flood(t, p, d, thr)
-        elif c == '2': tcp_flood(t, p, d, thr)
-        elif c == '3': icmp_flood(t, d, thr)
-        elif c == '4': http_flood(t, d, thr)
-        elif c == '5': smurf_attack(t, d, thr)
-        elif c == '6': network_wide_udp_flood(t, p, d, thr)
-        elif c == '7': broadcast_udp_flood(t, p, d, thr)
-        elif c == '8': dns_amplification_attack(t, d, thr)
-    threading.Thread(target=run, daemon=True).start()
+    threading.Thread(target=lambda: [
+        udp_flood(t, p, d, thr) if c == '1' else None,
+        tcp_flood(t, p, d, thr) if c == '2' else None,
+        icmp_flood(t, d, thr) if c == '3' else None,
+        http_flood(t, d, thr) if c == '4' else None,
+        smurf_attack(t, d, thr) if c == '5' else None,
+        network_wide_udp_flood(t, p, d, thr) if c == '6' else None,
+        broadcast_udp_flood(t, p, d, thr) if c == '7' else None,
+        dns_amplification_attack(t, d, thr) if c == '8' else None
+    ], daemon=True).start()
     return jsonify({'success': True, 'message': 'Attack Initiated'})
 
 def start_web_server():
+    print("[*] Starting professional Web GUI on http://127.0.0.1:5555")
     app.run(debug=False, port=5555, host='0.0.0.0')
 
 if __name__ == "__main__":

@@ -189,6 +189,22 @@
 
             <!-- MODULE: DOS -->
             <div id="mod-dos" class="module max-w-6xl mx-auto">
+                <!-- Stats Row -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="card !py-4 flex flex-col items-center">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Live Packet Count</span>
+                        <span id="dos_stat_packets" class="text-2xl font-black text-red-500 font-mono">0</span>
+                    </div>
+                    <div class="card !py-4 flex flex-col items-center">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Active Time</span>
+                        <span id="dos_stat_time" class="text-2xl font-black text-slate-200 font-mono">0s</span>
+                    </div>
+                    <div class="card !py-4 flex flex-col items-center">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Module State</span>
+                        <span id="dos_stat_state" class="text-2xl font-black text-slate-500 font-mono">IDLE</span>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="card lg:col-span-1 h-fit border-red-900/30">
                         <h3 class="text-sm font-bold uppercase tracking-wider text-red-400 mb-4">DoS Vector Config</h3>
@@ -389,6 +405,7 @@
             btn1.disabled = false; btn2.disabled = false;
         }
 
+        let statsInterval = null;
         async function runDos() {
             const target = document.getElementById('dos_target').value;
             if(!target) return appendTerm('dos_terminal', 'Target required.', 'err');
@@ -397,13 +414,14 @@
             const btn = document.getElementById('btn_dos');
             btn.disabled = true;
             const type = document.getElementById('dos_type').value;
+            const duration = parseInt(document.getElementById('dos_dur').value);
             
             appendTerm('dos_terminal', `Deploying Attack Vector ${type} against ${target}...`, 'warn');
 
             const payload = {
                 target: target,
                 port: document.getElementById('dos_port').value,
-                duration: document.getElementById('dos_dur').value,
+                duration: duration,
                 threads: document.getElementById('dos_thr').value,
                 type: type
             };
@@ -412,11 +430,34 @@
             
             if(data.success) {
                 appendTerm('dos_terminal', data.message, 'success');
-                appendTerm('dos_terminal', `Flood active for ${payload.duration} seconds in background kernel...`);
+                appendTerm('dos_terminal', `Flood active for ${duration} seconds in background kernel...`);
+                
+                // Start stats polling
+                document.getElementById('dos_stat_state').textContent = 'RUNNING';
+                document.getElementById('dos_stat_state').className = 'text-2xl font-black text-red-500 font-mono animate-pulse';
+                
+                const start = Date.now();
+                if(statsInterval) clearInterval(statsInterval);
+                
+                statsInterval = setInterval(async () => {
+                    const stats = await fetch('/api/stats').then(r => r.json());
+                    document.getElementById('dos_stat_packets').textContent = stats.packets_sent.toLocaleString();
+                    const elapsed = Math.floor((Date.now() - start) / 1000);
+                    document.getElementById('dos_stat_time').textContent = elapsed + 's';
+                    
+                    if (!stats.attack_active || elapsed >= duration) {
+                        clearInterval(statsInterval);
+                        document.getElementById('dos_stat_state').textContent = 'FINISHED';
+                        document.getElementById('dos_stat_state').className = 'text-2xl font-black text-green-500 font-mono';
+                        btn.disabled = false;
+                        appendTerm('dos_terminal', `Attack finalized. Total packets: ${stats.packets_sent.toLocaleString()}`, 'success');
+                    }
+                }, 1000);
+
             } else {
                 appendTerm('dos_terminal', `Error: ${data.message}`, 'err');
+                btn.disabled = false;
             }
-            setTimeout(() => { btn.disabled = false; }, 2000);
         }
 
         // Backend Health Check

