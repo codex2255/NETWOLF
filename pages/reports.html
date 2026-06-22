@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NETWOLF - Reports</title>
+    <link rel="stylesheet" href="../assets/css/scanner.css">
+</head>
+<body>
+
+    <nav id="navbar">
+        <div class="nav-logo">NETWOLF</div>
+        <ul class="nav-links">
+            <li><a href="dashboard.html" class="nav-item">DASHBOARD</a></li>
+            <li><a href="scanner.html" class="nav-item">PORT SCANNER</a></li>
+            <li><a href="dos.html" class="nav-item">DoS MODULE</a></li>
+            <li><a href="logs.html" class="nav-item">LOGS</a></li>
+        </ul>
+        <div class="nav-status">
+            <span class="status-dot"></span>
+            <span class="status-text">SYSTEM ONLINE</span>
+        </div>
+    </nav>
+
+    <div id="mainLayout">
+        <aside id="sidebar">
+            <a href="dashboard.html" class="sidebar-item">&#9658; DASHBOARD</a>
+            <a href="scanner.html" class="sidebar-item">&#9658; PORT SCANNER</a>
+            <a href="dos.html" class="sidebar-item">&#9658; DoS MODULE</a>
+            <a href="logs.html" class="sidebar-item">&#9658; SCAN LOGS</a>
+            <a href="reports.html" class="sidebar-item active">&#9658; REPORTS</a>
+            <a href="settings.html" class="sidebar-item">&#9658; SETTINGS</a>
+        </aside>
+
+        <main id="mainContent">
+            <h1 class="page-title">// REPORTS</h1>
+
+            <h2 class="section-title">// LAST SCAN SUMMARY</h2>
+
+            <div id="summaryBox" style="background:#111118; border:1px solid rgba(255,0,0,0.2); border-radius:6px; padding:20px; margin-bottom:24px;">
+                <p id="summaryText" style="color:#999; font-size:11px; letter-spacing:1px;">No scan data found. Run a port scan first.</p>
+            </div>
+
+            <h2 class="section-title">// OPEN PORTS</h2>
+
+            <div id="openPortsList" style="background:#080810; border:1px solid rgba(255,0,0,0.15); border-radius:6px; padding:16px; margin-bottom:24px;">
+                <p id="noPortsMsg" style="color:#999; font-size:11px; letter-spacing:1px;">No open ports found.</p>
+            </div>
+
+            <h2 class="section-title">// EXPORT</h2>
+
+            <div style="display:flex; gap:10px;">
+                <button onclick="exportJSON()" style="background:#ff2222; color:#000; border:none; font-family:'Courier New',monospace; font-size:11px; font-weight:bold; padding:9px 20px; cursor:pointer; letter-spacing:2px;">EXPORT JSON</button>
+                <button onclick="exportCSV()" style="background:none; border:1px solid rgba(255,0,0,0.3); color:#ff4444; font-family:'Courier New',monospace; font-size:11px; padding:9px 20px; cursor:pointer; letter-spacing:2px;">EXPORT CSV</button>
+            </div>
+        </main>
+    </div>
+
+    <script src="../assets/js/netwolf.js"></script>
+    <script>
+        var lastScan = null;
+
+        function loadReport() {
+            var raw = localStorage.getItem('netwolf_last_scan');
+            if (!raw) return;
+
+            lastScan = JSON.parse(raw);
+
+            var open = [];
+            for (var i = 0; i < lastScan.results.length; i++) {
+                if (lastScan.results[i].status == 'open') {
+                    open.push(lastScan.results[i]);
+                }
+            }
+
+            document.getElementById('summaryText').innerHTML =
+                'TARGET: <span style="color:#ff4444">' + lastScan.ip + '</span><br>' +
+                'TOTAL PORTS SCANNED: <span style="color:#ff4444">' + lastScan.results.length + '</span><br>' +
+                'OPEN PORTS: <span style="color:#22ff66">' + open.length + '</span><br>' +
+                'TIME: <span style="color:#ff4444">' + lastScan.time + '</span>';
+
+            if (open.length > 0) {
+                document.getElementById('noPortsMsg').style.display = 'none';
+                var list = document.getElementById('openPortsList');
+                for (var j = 0; j < open.length; j++) {
+                    var p = document.createElement('p');
+                    p.style.color = '#22ff66';
+                    p.style.fontSize = '11px';
+                    p.style.padding = '6px 0';
+                    p.style.borderBottom = '1px solid rgba(255,0,0,0.06)';
+                    p.textContent = 'PORT ' + open[j].port + ' — OPEN';
+                    list.appendChild(p);
+                }
+            }
+        }
+
+        function exportJSON() {
+            if (!lastScan) return alert('No scan data to export.');
+            var a = document.createElement('a');
+            a.href = URL.createObjectURL(new Blob([JSON.stringify(lastScan, null, 2)], {type:'application/json'}));
+            a.download = 'netwolf_report.json';
+            a.click();
+        }
+
+        function exportCSV() {
+            if (!lastScan) return alert('No scan data to export.');
+            var csv = 'PORT,STATUS,PROTOCOL\n';
+            for (var i = 0; i < lastScan.results.length; i++) {
+                var r = lastScan.results[i];
+                csv += r.port + ',' + r.status + ',' + (r.protocol || 'TCP') + '\n';
+            }
+            var a = document.createElement('a');
+            a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+            a.download = 'netwolf_report.csv';
+            a.click();
+        }
+
+        loadReport();
+    </script>
+</body>
+</html>

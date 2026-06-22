@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NETWOLF — Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../assets/css/dashboard.css">
+</head>
+<body>
+
+    <nav id="navbar">
+        <div class="nav-logo">NETWOLF</div>
+        <ul class="nav-links">
+            <li><a href="dashboard.html" class="nav-item active">DASHBOARD</a></li>
+            <li><a href="scanner.html" class="nav-item">PORT SCANNER</a></li>
+            <li><a href="dos.html" class="nav-item">DoS MODULE</a></li>
+            <li><a href="#" class="nav-item">LOGS</a></li>
+        </ul>
+        <div class="nav-status">
+            <span class="status-dot"></span>
+            <span class="status-text">SYSTEM ONLINE</span>
+        </div>
+    </nav>
+
+    <div id="mainLayout">
+        <aside id="sidebar">
+            <a href="dashboard.html" class="sidebar-item active">&#9658; DASHBOARD</a>
+            <a href="scanner.html" class="sidebar-item">&#9658; PORT SCANNER</a>
+            <a href="dos.html" class="sidebar-item">&#9658; DoS MODULE</a>
+            <a href="#" class="sidebar-item">&#9658; SCAN LOGS</a>
+            <a href="#" class="sidebar-item">&#9658; REPORTS</a>
+            <a href="#" class="sidebar-item">&#9658; SETTINGS</a>
+        </aside>
+
+        <main id="mainContent">
+            <h1 class="page-title">// DASHBOARD</h1>
+            <div id="statsGrid">
+                <div class="stat-card">
+                    <p class="stat-label">SCANS RUN</p>
+                    <p class="stat-value" id="scansRun">0</p>
+                    <p class="stat-sub">SESSION TOTAL</p>
+                </div>
+                <div class="stat-card">
+                    <p class="stat-label">OPEN PORTS</p>
+                    <p class="stat-value" id="openPorts">0</p>
+                    <p class="stat-sub">LAST SCAN</p>
+                </div>
+                <div class="stat-card">
+                    <p class="stat-label">VULNERABILITIES</p>
+                    <p class="stat-value stat-danger" id="vulnCount">0</p>
+                    <p class="stat-sub">DETECTED</p>
+                </div>
+            </div>
+            <h2 class="section-title">// RECENT ACTIVITY</h2>
+            <div id="activityLog"></div>
+        </main>
+    </div>
+
+    <script src="../assets/js/netwolf.js"></script>
+    <script src="../assets/js/dashboard.js"></script>
+</body>
+</html>
