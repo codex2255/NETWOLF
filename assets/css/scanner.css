@@ -26,7 +26,7 @@ body {
 
 .nav-logo { color: #ff2222; font-size: 18px; font-weight: bold; letter-spacing: 6px; }
 .nav-links { list-style: none; display: flex; gap: 28px; }
-.nav-item { color: #555; font-size: 11px; letter-spacing: 2px; text-decoration: none; transition: color 0.2s; }
+.nav-item { color: #cccccc; font-size: 11px; letter-spacing: 2px; text-decoration: none; transition: color 0.2s; }
 .nav-item:hover { color: #ff4444; }
 .nav-item.active { color: #ff2222; }
 .nav-status { display: flex; align-items: center; gap: 8px; }
@@ -61,7 +61,7 @@ body {
 .sidebar-item {
     padding: 10px 20px;
     font-size: 11px;
-    color: #555;
+    color: #cccccc;
     letter-spacing: 1px;
     text-decoration: none;
     border-left: 2px solid transparent;
@@ -91,7 +91,7 @@ body {
 }
 
 .input-field { display: flex; flex-direction: column; gap: 6px; }
-.input-field label { font-size: 10px; color: #555; letter-spacing: 2px; }
+.input-field label { font-size: 10px; color: #cccccc; letter-spacing: 2px; }
 
 .input-field input {
     background-color: #0a0a0f;
@@ -106,7 +106,7 @@ body {
 }
 
 .input-field input:focus { border-color: #ff2222; }
-.input-field input::placeholder { color: #333; }
+.input-field input::placeholder { color: #999999; }
 
 #scanBtn {
     background-color: #ff2222;
@@ -123,7 +123,7 @@ body {
 }
 
 #scanBtn:hover { background-color: #ff4444; }
-#scanBtn:disabled { background-color: #333; color: #666; cursor: not-allowed; }
+#scanBtn:disabled { background-color: #999999; color: #cccccc; cursor: not-allowed; }
 
 .error-msg { color: #ff4400; font-size: 11px; margin-top: 10px; letter-spacing: 1px; }
 .hidden { display: none !important; }
@@ -163,7 +163,7 @@ body {
     background-color: #111118;
     border-bottom: 1px solid rgba(255,0,0,0.2);
     font-size: 10px;
-    color: #555;
+    color: #cccccc;
     letter-spacing: 2px;
 }
 
@@ -173,7 +173,7 @@ body {
     padding: 10px 16px;
     border-bottom: 1px solid rgba(255,0,0,0.06);
     font-size: 11px;
-    color: #666;
+    color: #cccccc;
 }
 
 .result-row:hover { background-color: rgba(255,0,0,0.04); }
@@ -183,4 +183,4 @@ body {
 .status-closed { color: #ff3333; }
 .status-filtered { color: #ffaa22; }
 
-.no-results { padding: 20px 16px; color: #333; font-size: 11px; letter-spacing: 1px; }
+.no-results { padding: 20px 16px; color: #999999; font-size: 11px; letter-spacing: 1px; }
