@@ -13,6 +13,7 @@
         <div class="nav-logo">NETWOLF</div>
         <ul class="nav-links">
             <li><a href="dashboard.html" class="nav-item">DASHBOARD</a></li>
+            <li><a href="discovery.html" class="nav-item">DISCOVERY</a></li>
             <li><a href="scanner.html" class="nav-item active">PORT SCANNER</a></li>
             <li><a href="dos.html" class="nav-item">DoS MODULE</a></li>
             <li><a href="logs.html" class="nav-item">LOGS</a></li>
@@ -26,6 +27,7 @@
     <div id="mainLayout">
         <aside id="sidebar">
             <a href="dashboard.html" class="sidebar-item">&#9658; DASHBOARD</a>
+            <a href="discovery.html" class="sidebar-item">&#9658; NETWORK DISCOVERY</a>
             <a href="scanner.html" class="sidebar-item active">&#9658; PORT SCANNER</a>
             <a href="dos.html" class="sidebar-item">&#9658; DoS MODULE</a>
             <a href="logs.html" class="sidebar-item">&#9658; SCAN LOGS</a>
@@ -39,16 +41,22 @@
             <div id="inputCard">
                 <div id="inputRow">
                     <div class="input-field">
-                        <label for="targetIP">TARGET IP / HOSTNAME</label>
+                        <label for="targetIP">TARGET IP</label>
                         <input type="text" id="targetIP" placeholder="e.g. 192.168.1.1" />
                     </div>
                     <div class="input-field">
                         <label for="portStart">PORT RANGE START</label>
-                        <input type="number" id="portStart" placeholder="e.g. 1" min="1" max="65535" />
+                        <input type="number" id="portStart" placeholder="e.g. 1" min="1" max="65535" value="1" />
                     </div>
                     <div class="input-field">
                         <label for="portEnd">PORT RANGE END</label>
                         <input type="number" id="portEnd" placeholder="e.g. 1024" min="1" max="65535" />
+                    </div>
+                    <div class="input-field" style="display:flex; align-items:flex-end;">
+                        <label style="display:flex; align-items:center; gap:8px; font-size:10px; color:#ccc; letter-spacing:1px;">
+                            <input type="checkbox" id="scanUdp" />
+                            SCAN UDP
+                        </label>
                     </div>
                     <button id="scanBtn" onclick="startScan()">&#9658; SCAN</button>
                 </div>
@@ -66,7 +74,7 @@
                     <span>PORT</span>
                     <span>SERVICE</span>
                     <span>STATUS</span>
-                    <span>RESPONSE TIME</span>
+                    <span>PROTOCOL</span>
                 </div>
                 <div id="resultsBody">
                     <p class="no-results">No scan results yet. Enter a target and click SCAN.</p>
@@ -75,6 +83,7 @@
         </main>
     </div>
 
+    <script src="../assets/js/api.js"></script>
     <script src="../assets/js/netwolf.js"></script>
     <script src="../assets/js/scanner.js"></script>
 </body>

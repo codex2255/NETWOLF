@@ -119,14 +119,33 @@ body {
     color: #ff4444;
     font-family: 'Courier New', monospace;
     font-size: 12px;
-    padding: 8px 12px;
+    padding: 8px 32px 8px 12px;
     outline: none;
     transition: border-color 0.2s;
+    cursor: pointer;
+    color-scheme: dark;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23ff4444' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+}
+
+.input-field input {
+    padding: 8px 12px;
+    background-image: none;
+    cursor: text;
 }
 
 .input-field input:focus,
 .input-field select:focus { border-color: #ff2222; }
 .input-field input::placeholder { color: #999999; }
+
+.input-field select option {
+    background-color: #0a0a0f;
+    color: #ff4444;
+}
 
 #btnRow { display: flex; gap: 12px; }
 

@@ -2,10 +2,10 @@ import socket
 import threading
 from queue import Queue
 
-def scan_port(target, port, results, index):
+def scan_port(target, port, results, index, timeout=0.5):
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(0.5)
+        sock.settimeout(timeout)
         result = sock.connect_ex((target, port))
         
         if result == 0:
@@ -51,7 +51,7 @@ def scan_udp_port(target, port, timeout=1):
     except:
         return {'port': port, 'status': 'closed', 'protocol': 'UDP'}
 
-def port_scan(target, start_port, end_port, scan_udp=False):
+def port_scan(target, start_port, end_port, scan_udp=False, timeout=0.5):
     total_ports = end_port - start_port + 1
     results = [None] * total_ports
     threads = []
@@ -61,7 +61,7 @@ def port_scan(target, start_port, end_port, scan_udp=False):
         batch = range(i, min(i + max_threads, total_ports))
         for idx in batch:
             port = start_port + idx
-            thread = threading.Thread(target=scan_port, args=(target, port, results, idx))
+            thread = threading.Thread(target=scan_port, args=(target, port, results, idx, timeout))
             threads.append(thread)
             thread.start()
         
@@ -78,7 +78,7 @@ def port_scan(target, start_port, end_port, scan_udp=False):
         
         for port in udp_common:
             if start_port <= port <= end_port:
-                result = scan_udp_port(target, port)
+                result = scan_udp_port(target, port, timeout=timeout)
                 if result['status'] in ['open', 'open|filtered']:
                     udp_results.append(result)
         

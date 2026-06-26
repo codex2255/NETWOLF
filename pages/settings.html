@@ -11,6 +11,7 @@
         <div class="nav-logo">NETWOLF</div>
         <ul class="nav-links">
             <li><a href="dashboard.html" class="nav-item">DASHBOARD</a></li>
+            <li><a href="discovery.html" class="nav-item">DISCOVERY</a></li>
             <li><a href="scanner.html" class="nav-item">PORT SCANNER</a></li>
             <li><a href="dos.html" class="nav-item">DoS MODULE</a></li>
             <li><a href="logs.html" class="nav-item">LOGS</a></li>
@@ -24,6 +25,7 @@
     <div id="mainLayout">
         <aside id="sidebar">
             <a href="dashboard.html" class="sidebar-item">&#9658; DASHBOARD</a>
+            <a href="discovery.html" class="sidebar-item">&#9658; NETWORK DISCOVERY</a>
             <a href="scanner.html" class="sidebar-item">&#9658; PORT SCANNER</a>
             <a href="dos.html" class="sidebar-item">&#9658; DoS MODULE</a>
             <a href="logs.html" class="sidebar-item">&#9658; SCAN LOGS</a>
@@ -38,7 +40,7 @@
 
             <div style="background:#111118; border:1px solid rgba(255,0,0,0.2); border-radius:6px; padding:20px; margin-bottom:24px;">
                 <p style="font-size:11px; color:#cccccc; margin-bottom:8px; letter-spacing:1px;">
-                    API ENDPOINT: <span style="color:#ff4444;">http://127.0.0.1:5000</span>
+                    API ENDPOINT: <span id="apiEndpoint" style="color:#ff4444;"></span>
                 </p>
                 <p style="font-size:11px; color:#cccccc; margin-bottom:8px; letter-spacing:1px;">
                     STATUS: <span id="serverStatus" style="color:#999;">CHECKING...</span>
@@ -74,15 +76,22 @@
         </main>
     </div>
 
+    <script src="../assets/js/api.js"></script>
     <script src="../assets/js/netwolf.js"></script>
     <script>
+        document.getElementById('apiEndpoint').textContent = API_BASE;
+
         function checkServer() {
-            fetch('http://127.0.0.1:5000/health')
-            .then(function(res) { return res.json(); })
-            .then(function(data) {
+            getHealth()
+            .then(function(res) {
                 var el = document.getElementById('serverStatus');
-                el.textContent = 'ONLINE';
-                el.style.color = '#22ff66';
+                if (res.ok) {
+                    el.textContent = 'ONLINE';
+                    el.style.color = '#22ff66';
+                } else {
+                    el.textContent = 'OFFLINE';
+                    el.style.color = '#ff3333';
+                }
             })
             .catch(function() {
                 var el = document.getElementById('serverStatus');

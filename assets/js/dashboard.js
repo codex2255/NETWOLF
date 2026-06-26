@@ -13,30 +13,23 @@ function countUp(id, target) {
     }, 30);
 }
 
-function loadDashboard() {
-    var logs = JSON.parse(localStorage.getItem('netwolf_logs') || '[]');
-    var lastScan = JSON.parse(localStorage.getItem('netwolf_last_scan') || 'null');
-
-    var scansRun = logs.filter(function(l) { return l.type == 'scan'; }).length;
+function countOpenPorts(results) {
     var openPorts = 0;
     var vulnCount = 0;
-
-    if (lastScan && lastScan.results) {
-        for (var i = 0; i < lastScan.results.length; i++) {
-            if (lastScan.results[i].status == 'open') {
-                openPorts++;
-                var port = lastScan.results[i].port;
-                if (port == 21 || port == 23 || port == 445 || port == 3389 || port == 5900) {
-                    vulnCount++;
-                }
+    if (!results) return { openPorts: 0, vulnCount: 0 };
+    for (var i = 0; i < results.length; i++) {
+        if (results[i].status == 'open' || results[i].status == 'open|filtered') {
+            openPorts++;
+            var port = results[i].port;
+            if (port == 21 || port == 23 || port == 445 || port == 3389 || port == 5900) {
+                vulnCount++;
             }
         }
     }
+    return { openPorts: openPorts, vulnCount: vulnCount };
+}
 
-    countUp('scansRun', scansRun);
-    countUp('openPorts', openPorts);
-    countUp('vulnCount', vulnCount);
-
+function renderActivity(logs) {
     var container = document.getElementById('activityLog');
     container.innerHTML = '';
 
@@ -61,22 +54,57 @@ function loadDashboard() {
     }
 }
 
-function checkStatus() {
-    fetch('http://127.0.0.1:5000/health')
-    .then(function(res) { return res.json(); })
-    .then(function() {
-        var dot = document.querySelector('.status-dot');
-        var text = document.querySelector('.status-text');
-        if (dot) dot.style.backgroundColor = '#22ff66';
-        if (text) { text.textContent = 'SYSTEM ONLINE'; text.style.color = '#22ff66'; }
+function loadDashboard() {
+    var logs = JSON.parse(localStorage.getItem('netwolf_logs') || '[]');
+    var scansRun = logs.filter(function(l) { return l.type == 'scan'; }).length;
+
+    countUp('scansRun', scansRun);
+    renderActivity(logs);
+
+    getReports()
+    .then(function(res) {
+        if (res.ok && res.data.success && res.data.reports && res.data.reports.length > 0) {
+            return getReport(res.data.reports[0].id);
+        }
+        return null;
+    })
+    .then(function(reportRes) {
+        if (reportRes && reportRes.ok && reportRes.data.success) {
+            var counts = countOpenPorts(reportRes.data.report.results);
+            countUp('openPorts', counts.openPorts);
+            countUp('vulnCount', counts.vulnCount);
+            return;
+        }
+        var lastScan = JSON.parse(localStorage.getItem('netwolf_last_scan') || 'null');
+        if (lastScan && lastScan.results) {
+            var counts = countOpenPorts(lastScan.results);
+            countUp('openPorts', counts.openPorts);
+            countUp('vulnCount', counts.vulnCount);
+        } else {
+            countUp('openPorts', 0);
+            countUp('vulnCount', 0);
+        }
     })
     .catch(function() {
-        var dot = document.querySelector('.status-dot');
-        var text = document.querySelector('.status-text');
-        if (dot) dot.style.backgroundColor = '#ff3333';
-        if (text) { text.textContent = 'SYSTEM OFFLINE'; text.style.color = '#ff3333'; }
+        var lastScan = JSON.parse(localStorage.getItem('netwolf_last_scan') || 'null');
+        if (lastScan && lastScan.results) {
+            var counts = countOpenPorts(lastScan.results);
+            countUp('openPorts', counts.openPorts);
+            countUp('vulnCount', counts.vulnCount);
+        }
+    });
+
+    getNetworkInfo()
+    .then(function(res) {
+        var el = document.getElementById('networkInfo');
+        if (res.ok && res.data.success && el) {
+            el.innerHTML = 'NETWORK: <span style="color:#ff4444">' + res.data.localNetwork + '</span> | ROUTER: <span style="color:#ff4444">' + (res.data.routerIp || 'unknown') + '</span>';
+        }
+    })
+    .catch(function() {
+        var el = document.getElementById('networkInfo');
+        if (el) el.textContent = 'Network info unavailable — is the backend running?';
     });
 }
 
 loadDashboard();
-checkStatus();

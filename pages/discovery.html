@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NETWOLF — Network Discovery</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../assets/css/scanner.css">
+</head>
+<body>
+
+    <nav id="navbar">
+        <div class="nav-logo">NETWOLF</div>
+        <ul class="nav-links">
+            <li><a href="dashboard.html" class="nav-item">DASHBOARD</a></li>
+            <li><a href="discovery.html" class="nav-item active">DISCOVERY</a></li>
+            <li><a href="scanner.html" class="nav-item">PORT SCANNER</a></li>
+            <li><a href="dos.html" class="nav-item">DoS MODULE</a></li>
+            <li><a href="logs.html" class="nav-item">LOGS</a></li>
+        </ul>
+        <div class="nav-status">
+            <span class="status-dot"></span>
+            <span class="status-text">SYSTEM ONLINE</span>
+        </div>
+    </nav>
+
+    <div id="mainLayout">
+        <aside id="sidebar">
+            <a href="dashboard.html" class="sidebar-item">&#9658; DASHBOARD</a>
+            <a href="discovery.html" class="sidebar-item active">&#9658; NETWORK DISCOVERY</a>
+            <a href="scanner.html" class="sidebar-item">&#9658; PORT SCANNER</a>
+            <a href="dos.html" class="sidebar-item">&#9658; DoS MODULE</a>
+            <a href="logs.html" class="sidebar-item">&#9658; SCAN LOGS</a>
+            <a href="reports.html" class="sidebar-item">&#9658; REPORTS</a>
+            <a href="settings.html" class="sidebar-item">&#9658; SETTINGS</a>
+        </aside>
+
+        <main id="mainContent">
+            <h1 class="page-title">// NETWORK DISCOVERY</h1>
+            <p id="networkHint" style="font-size:11px; color:#999; letter-spacing:1px; margin-bottom:16px;">Loading network info...</p>
+
+            <div id="inputCard">
+                <div id="inputRow">
+                    <div class="input-field">
+                        <label for="discoverMode">DISCOVERY MODE</label>
+                        <select id="discoverMode">
+                            <option value="auto">AUTO</option>
+                            <option value="gateway">GATEWAY</option>
+                            <option value="all_interfaces">ALL INTERFACES</option>
+                        </select>
+                    </div>
+                    <div class="input-field">
+                        <label for="networkCidr">NETWORK CIDR (OPTIONAL)</label>
+                        <input type="text" id="networkCidr" placeholder="e.g. 192.168.1.0/24" />
+                    </div>
+                    <div class="input-field" style="display:flex; align-items:flex-end; gap:8px;">
+                        <label style="display:flex; align-items:center; gap:8px; font-size:10px; color:#ccc; letter-spacing:1px;">
+                            <input type="checkbox" id="enhancedDiscovery" checked />
+                            ENHANCED (MAC / OS)
+                        </label>
+                    </div>
+                    <button id="discoverBtn" onclick="startDiscovery()">&#9658; DISCOVER</button>
+                </div>
+                <p id="errorMsg" class="error-msg hidden">&#9888; Discovery failed. Check backend connection.</p>
+            </div>
+
+            <div id="statusBar" class="hidden">
+                <span class="status-dot-scan"></span>
+                <span id="statusText">DISCOVERING...</span>
+            </div>
+
+            <h2 class="section-title">// DISCOVERED HOSTS</h2>
+            <div id="resultsContainer">
+                <div class="results-header" style="grid-template-columns: repeat(7, 1fr);">
+                    <span>IP</span>
+                    <span>HOSTNAME</span>
+                    <span>MAC</span>
+                    <span>MANUFACTURER</span>
+                    <span>OS</span>
+                    <span>DEVICE</span>
+                    <span>STATUS</span>
+                </div>
+                <div id="resultsBody">
+                    <p class="no-results">No hosts discovered yet. Click DISCOVER to scan the network.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../assets/js/api.js"></script>
+    <script src="../assets/js/netwolf.js"></script>
+    <script src="../assets/js/discovery.js"></script>
+</body>
+</html>

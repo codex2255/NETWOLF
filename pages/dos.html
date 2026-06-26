@@ -13,6 +13,7 @@
         <div class="nav-logo">NETWOLF</div>
         <ul class="nav-links">
             <li><a href="dashboard.html" class="nav-item">DASHBOARD</a></li>
+            <li><a href="discovery.html" class="nav-item">DISCOVERY</a></li>
             <li><a href="scanner.html" class="nav-item">PORT SCANNER</a></li>
             <li><a href="dos.html" class="nav-item active">DoS MODULE</a></li>
             <li><a href="logs.html" class="nav-item">LOGS</a></li>
@@ -26,6 +27,7 @@
     <div id="mainLayout">
         <aside id="sidebar">
             <a href="dashboard.html" class="sidebar-item">&#9658; DASHBOARD</a>
+            <a href="discovery.html" class="sidebar-item">&#9658; NETWORK DISCOVERY</a>
             <a href="scanner.html" class="sidebar-item">&#9658; PORT SCANNER</a>
             <a href="dos.html" class="sidebar-item active">&#9658; DoS MODULE</a>
             <a href="logs.html" class="sidebar-item">&#9658; SCAN LOGS</a>
@@ -51,8 +53,8 @@
                         <input type="number" id="targetPort" placeholder="e.g. 80" min="1" max="65535" />
                     </div>
                     <div class="input-field">
-                        <label for="packetCount">PACKET COUNT</label>
-                        <input type="number" id="packetCount" placeholder="e.g. 1000" min="1" />
+                        <label for="duration">DURATION (SECONDS)</label>
+                        <input type="number" id="duration" placeholder="e.g. 10" min="1" max="60" value="10" />
                     </div>
                 </div>
                 <div id="inputRowBottom">
@@ -110,6 +112,7 @@
         </main>
     </div>
 
+    <script src="../assets/js/api.js"></script>
     <script src="../assets/js/netwolf.js"></script>
     <script src="../assets/js/dos.js"></script>
 </body>

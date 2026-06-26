@@ -85,3 +85,7 @@ if (intro) {
         }, 1000);
     }, 5000);
 }
+
+if (document.getElementById('navbar') && typeof checkNavbarHealth === 'function') {
+    checkNavbarHealth();
+}

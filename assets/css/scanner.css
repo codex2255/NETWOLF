@@ -108,6 +108,41 @@ body {
 .input-field input:focus { border-color: #ff2222; }
 .input-field input::placeholder { color: #999999; }
 
+.input-field select,
+#reportSelect {
+    background-color: #0a0a0f;
+    border: 1px solid rgba(255,0,0,0.25);
+    border-radius: 4px;
+    color: #ff4444;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    padding: 8px 32px 8px 12px;
+    outline: none;
+    cursor: pointer;
+    color-scheme: dark;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23ff4444' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    transition: border-color 0.2s;
+}
+
+.input-field select:focus,
+#reportSelect:focus { border-color: #ff2222; }
+
+.input-field select option,
+#reportSelect option {
+    background-color: #0a0a0f;
+    color: #ff4444;
+}
+
+#reportSelect {
+    min-width: 320px;
+}
+
+#discoverBtn,
 #scanBtn {
     background-color: #ff2222;
     color: #000;
@@ -122,8 +157,10 @@ body {
     transition: background-color 0.2s;
 }
 
-#scanBtn:hover { background-color: #ff4444; }
-#scanBtn:disabled { background-color: #999999; color: #cccccc; cursor: not-allowed; }
+#scanBtn:hover,
+#discoverBtn:hover { background-color: #ff4444; }
+#scanBtn:disabled,
+#discoverBtn:disabled { background-color: #999999; color: #cccccc; cursor: not-allowed; }
 
 .error-msg { color: #ff4400; font-size: 11px; margin-top: 10px; letter-spacing: 1px; }
 .hidden { display: none !important; }
@@ -182,5 +219,14 @@ body {
 .status-open { color: #22ff66; }
 .status-closed { color: #ff3333; }
 .status-filtered { color: #ffaa22; }
+.status-open-filtered { color: #ffaa22; }
+
+#resultsContainer .results-header[style*="repeat(7"] {
+    grid-template-columns: repeat(7, 1fr);
+}
+
+.discovery-row {
+    grid-template-columns: repeat(7, 1fr);
+}
 
 .no-results { padding: 20px 16px; color: #999999; font-size: 11px; letter-spacing: 1px; }

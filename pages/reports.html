@@ -11,6 +11,7 @@
         <div class="nav-logo">NETWOLF</div>
         <ul class="nav-links">
             <li><a href="dashboard.html" class="nav-item">DASHBOARD</a></li>
+            <li><a href="discovery.html" class="nav-item">DISCOVERY</a></li>
             <li><a href="scanner.html" class="nav-item">PORT SCANNER</a></li>
             <li><a href="dos.html" class="nav-item">DoS MODULE</a></li>
             <li><a href="logs.html" class="nav-item">LOGS</a></li>
@@ -24,6 +25,7 @@
     <div id="mainLayout">
         <aside id="sidebar">
             <a href="dashboard.html" class="sidebar-item">&#9658; DASHBOARD</a>
+            <a href="discovery.html" class="sidebar-item">&#9658; NETWORK DISCOVERY</a>
             <a href="scanner.html" class="sidebar-item">&#9658; PORT SCANNER</a>
             <a href="dos.html" class="sidebar-item">&#9658; DoS MODULE</a>
             <a href="logs.html" class="sidebar-item">&#9658; SCAN LOGS</a>
@@ -34,7 +36,14 @@
         <main id="mainContent">
             <h1 class="page-title">// REPORTS</h1>
 
-            <h2 class="section-title">// LAST SCAN SUMMARY</h2>
+            <h2 class="section-title">// SAVED SCANS</h2>
+            <div style="margin-bottom:20px;">
+                <select id="reportSelect" onchange="onReportSelect()">
+                    <option value="">Loading reports...</option>
+                </select>
+            </div>
+
+            <h2 class="section-title">// SCAN SUMMARY</h2>
 
             <div id="summaryBox" style="background:#111118; border:1px solid rgba(255,0,0,0.2); border-radius:6px; padding:20px; margin-bottom:24px;">
                 <p id="summaryText" style="color:#999; font-size:11px; letter-spacing:1px;">No scan data found. Run a port scan first.</p>
@@ -55,42 +64,83 @@
         </main>
     </div>
 
+    <script src="../assets/js/api.js"></script>
     <script src="../assets/js/netwolf.js"></script>
     <script>
         var lastScan = null;
 
-        function loadReport() {
-            var raw = localStorage.getItem('netwolf_last_scan');
-            if (!raw) return;
-
-            lastScan = JSON.parse(raw);
-
+        function renderReport(scan) {
+            lastScan = scan;
             var open = [];
-            for (var i = 0; i < lastScan.results.length; i++) {
-                if (lastScan.results[i].status == 'open') {
-                    open.push(lastScan.results[i]);
+            for (var i = 0; i < scan.results.length; i++) {
+                if (scan.results[i].status == 'open' || scan.results[i].status == 'open|filtered') {
+                    open.push(scan.results[i]);
                 }
             }
 
             document.getElementById('summaryText').innerHTML =
-                'TARGET: <span style="color:#ff4444">' + lastScan.ip + '</span><br>' +
-                'TOTAL PORTS SCANNED: <span style="color:#ff4444">' + lastScan.results.length + '</span><br>' +
+                'TARGET: <span style="color:#ff4444">' + scan.ip + '</span><br>' +
                 'OPEN PORTS: <span style="color:#22ff66">' + open.length + '</span><br>' +
-                'TIME: <span style="color:#ff4444">' + lastScan.time + '</span>';
+                'TIME: <span style="color:#ff4444">' + (scan.time || '—') + '</span>';
 
-            if (open.length > 0) {
-                document.getElementById('noPortsMsg').style.display = 'none';
-                var list = document.getElementById('openPortsList');
+            var list = document.getElementById('openPortsList');
+            list.innerHTML = '';
+            if (open.length === 0) {
+                list.innerHTML = '<p id="noPortsMsg" style="color:#999; font-size:11px; letter-spacing:1px;">No open ports found.</p>';
+            } else {
                 for (var j = 0; j < open.length; j++) {
                     var p = document.createElement('p');
                     p.style.color = '#22ff66';
                     p.style.fontSize = '11px';
                     p.style.padding = '6px 0';
                     p.style.borderBottom = '1px solid rgba(255,0,0,0.06)';
-                    p.textContent = 'PORT ' + open[j].port + ' — OPEN';
+                    var svc = open[j].service ? ' (' + open[j].service + ')' : '';
+                    p.textContent = 'PORT ' + open[j].port + ' — ' + open[j].status.toUpperCase() + svc + ' [' + (open[j].protocol || 'TCP') + ']';
                     list.appendChild(p);
                 }
             }
+        }
+
+        function loadFromLocalStorage() {
+            var raw = localStorage.getItem('netwolf_last_scan');
+            if (!raw) return;
+            renderReport(JSON.parse(raw));
+        }
+
+        function onReportSelect() {
+            var id = document.getElementById('reportSelect').value;
+            if (!id) return;
+            getReport(id)
+            .then(function(res) {
+                if (res.ok && res.data.success) {
+                    renderReport(res.data.report);
+                }
+            });
+        }
+
+        function loadReports() {
+            var select = document.getElementById('reportSelect');
+            getReports()
+            .then(function(res) {
+                select.innerHTML = '';
+                if (!res.ok || !res.data.success || !res.data.reports || res.data.reports.length === 0) {
+                    select.innerHTML = '<option value="">No server reports — using local data</option>';
+                    loadFromLocalStorage();
+                    return;
+                }
+                for (var i = 0; i < res.data.reports.length; i++) {
+                    var r = res.data.reports[i];
+                    var opt = document.createElement('option');
+                    opt.value = r.id;
+                    opt.textContent = r.ip + ' — ' + r.openCount + ' open — ' + (r.time || r.id);
+                    select.appendChild(opt);
+                }
+                onReportSelect();
+            })
+            .catch(function() {
+                select.innerHTML = '<option value="">API unavailable — using local data</option>';
+                loadFromLocalStorage();
+            });
         }
 
         function exportJSON() {
@@ -103,10 +153,10 @@
 
         function exportCSV() {
             if (!lastScan) return alert('No scan data to export.');
-            var csv = 'PORT,STATUS,PROTOCOL\n';
+            var csv = 'PORT,STATUS,PROTOCOL,SERVICE\n';
             for (var i = 0; i < lastScan.results.length; i++) {
                 var r = lastScan.results[i];
-                csv += r.port + ',' + r.status + ',' + (r.protocol || 'TCP') + '\n';
+                csv += r.port + ',' + r.status + ',' + (r.protocol || 'TCP') + ',' + (r.service || '') + '\n';
             }
             var a = document.createElement('a');
             a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
@@ -114,7 +164,7 @@
             a.click();
         }
 
-        loadReport();
+        loadReports();
     </script>
 </body>
 </html>
